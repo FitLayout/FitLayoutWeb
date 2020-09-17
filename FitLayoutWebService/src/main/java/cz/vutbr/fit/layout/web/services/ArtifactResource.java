@@ -31,7 +31,6 @@ import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.model.Artifact;
 import cz.vutbr.fit.layout.model.Page;
 import cz.vutbr.fit.layout.rdf.BoxModelBuilder;
-import cz.vutbr.fit.layout.rdf.RESOURCE;
 import cz.vutbr.fit.layout.rdf.Serialization;
 
 /**
@@ -74,7 +73,7 @@ public class ArtifactResource extends BaseStorageResource
             sm.setServiceParams(op, params.getParams());
             Artifact page = ((ArtifactService) op).process(null);
             
-            IRI pageIri = RESOURCE.createPageURI(page.getId());
+            IRI pageIri = page.getIri();
             BoxModelBuilder builder = new BoxModelBuilder((Page) page, pageIri);
             Model graph = builder.getGraph();
             
