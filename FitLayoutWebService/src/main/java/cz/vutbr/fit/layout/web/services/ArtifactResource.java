@@ -7,7 +7,7 @@ package cz.vutbr.fit.layout.web.services;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Set;
+import java.util.Collection;
 
 import javax.annotation.PostConstruct;
 import javax.ws.rs.Consumes;
@@ -47,9 +47,12 @@ public class ArtifactResource extends BaseStorageResource
     public void init()
     {
         System.out.println("INIT");
+        //initialize the services
         sm = ServiceManager.create();
         CSSBoxTreeProvider provider = new CSSBoxTreeProvider();
         sm.addArtifactService(provider);
+        //use RDF storage as the artifact repository
+        sm.setArtifactRepository(getStorage());
         System.out.println("Services: " + sm.findArtifactSevices().keySet());
     }
 
@@ -57,7 +60,7 @@ public class ArtifactResource extends BaseStorageResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response listArtifacts()
     {
-        Set<IRI> list = getStorage().getArtifactIRIs();
+        Collection<IRI> list = getStorage().getArtifactIRIs();
         return Response.ok(list).build();
     }
     
@@ -73,18 +76,9 @@ public class ArtifactResource extends BaseStorageResource
             sm.setServiceParams(op, params.getParams());
             Artifact page = ((ArtifactService) op).process(null);
             
-            IRI pageIri = page.getIri();
-            BoxModelBuilder builder = new BoxModelBuilder((Page) page, pageIri);
-            Model graph = builder.getGraph();
+            getStorage().addArtifact(page);
             
-            StreamingOutput stream = new StreamingOutput() {
-                @Override
-                public void write(OutputStream os) throws IOException, WebApplicationException {
-                    Serialization.modelToJsonLDStream(graph, os);
-                }
-            };
-            
-            return Response.ok(stream).build();
+            return Response.ok(page.getIri()).build();
         }
         else
         {
