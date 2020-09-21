@@ -18,7 +18,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
-import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 
 import cz.vutbr.fit.layout.api.ArtifactService;
@@ -26,7 +25,6 @@ import cz.vutbr.fit.layout.api.ParametrizedOperation;
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.model.Artifact;
-import cz.vutbr.fit.layout.model.Page;
 import cz.vutbr.fit.layout.rdf.BoxModelBuilder;
 import cz.vutbr.fit.layout.rdf.Serialization;
 
@@ -85,9 +83,8 @@ public class InvokeResource
             sm.setServiceParams(op, params.getParams());
             Artifact page = ((ArtifactService) op).process(null);
             
-            IRI pageIri = page.getIri(); //TODO or generate a new IRI?
-            BoxModelBuilder builder = new BoxModelBuilder((Page) page, pageIri);
-            Model graph = builder.getGraph();
+            BoxModelBuilder builder = new BoxModelBuilder();
+            Model graph = builder.createGraph(page);
             
             StreamingOutput stream = new StreamingOutput() {
                 @Override
