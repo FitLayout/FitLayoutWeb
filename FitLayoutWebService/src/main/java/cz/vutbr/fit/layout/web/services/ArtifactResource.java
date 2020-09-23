@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.util.Collection;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -32,14 +33,17 @@ import cz.vutbr.fit.layout.model.Artifact;
 import cz.vutbr.fit.layout.model.Page;
 import cz.vutbr.fit.layout.rdf.BoxModelBuilder;
 import cz.vutbr.fit.layout.rdf.Serialization;
+import cz.vutbr.fit.layout.web.ejb.StorageService;
 
 /**
  * 
  * @author burgetr
  */
 @Path("artifact")
-public class ArtifactResource extends BaseStorageResource
+public class ArtifactResource
 {
+    @Inject
+    private StorageService storage;
     private ServiceManager sm;
     
     
@@ -52,7 +56,7 @@ public class ArtifactResource extends BaseStorageResource
         CSSBoxTreeProvider provider = new CSSBoxTreeProvider();
         sm.addArtifactService(provider);
         //use RDF storage as the artifact repository
-        sm.setArtifactRepository(getStorage());
+        sm.setArtifactRepository(storage.getStorage());
         System.out.println("Services: " + sm.findArtifactSevices().keySet());
     }
 
@@ -60,7 +64,7 @@ public class ArtifactResource extends BaseStorageResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response listArtifacts()
     {
-        Collection<IRI> list = getStorage().getArtifactIRIs();
+        Collection<IRI> list = storage.getStorage().getArtifactIRIs();
         return Response.ok(list).build();
     }
     
@@ -76,7 +80,7 @@ public class ArtifactResource extends BaseStorageResource
             sm.setServiceParams(op, params.getParams());
             Artifact page = ((ArtifactService) op).process(null);
             
-            getStorage().addArtifact(page);
+            storage.getStorage().addArtifact(page);
             
             return Response.ok(page.getIri()).build();
         }
