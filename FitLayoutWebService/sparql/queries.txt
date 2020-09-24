@@ -1,0 +1,12 @@
+-- List all artifacts:
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX box: <http://fitlayout.github.io/ontology/render.owl#>
+PREFIX segm: <http://fitlayout.github.io/ontology/segmentation.owl#>
+PREFIX layout: <http://fitlayout.github.io/ontology/fitlayout.owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?pg 
+WHERE {  
+  ?pg rdf:type ?type .
+  ?type rdfs:subClassOf layout:Artifact
+}
