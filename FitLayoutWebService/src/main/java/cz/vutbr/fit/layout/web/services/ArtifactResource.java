@@ -5,8 +5,6 @@
  */
 package cz.vutbr.fit.layout.web.services;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Collection;
 
 import javax.annotation.PostConstruct;
@@ -16,23 +14,18 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.Response.Status;
 
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 import cz.vutbr.fit.layout.api.ArtifactService;
 import cz.vutbr.fit.layout.api.ParametrizedOperation;
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.model.Artifact;
-import cz.vutbr.fit.layout.model.Page;
-import cz.vutbr.fit.layout.rdf.BoxModelBuilder;
-import cz.vutbr.fit.layout.rdf.Serialization;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 
 /**
@@ -50,7 +43,6 @@ public class ArtifactResource
     @PostConstruct
     public void init()
     {
-        System.out.println("INIT");
         //initialize the services
         sm = ServiceManager.create();
         CSSBoxTreeProvider provider = new CSSBoxTreeProvider();
@@ -90,5 +82,16 @@ public class ArtifactResource
         }
     }
 
+    @GET
+    @Path("/nextId")
+    public Response nextArtifactId()
+    {
+        try {
+            long seq = storage.getStorage().getNextSequenceValue("page");
+            return Response.ok(seq).build();
+        } catch (RepositoryException e) {
+            return Response.serverError().entity(e.getMessage()).build();
+        }
+    }
     
 }

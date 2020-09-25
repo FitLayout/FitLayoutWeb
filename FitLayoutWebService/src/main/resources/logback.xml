@@ -15,6 +15,21 @@
 		<appender-ref ref="STDOUT" />
 	</logger>
 
+	<logger name="cz.vutbr.web.css" additivity="false">
+		<level value="off" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="cz.vutbr.web.csskit" additivity="false">
+		<level value="off" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="cz.vutbr.web.domassign" additivity="false">
+		<level value="off" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
 	<logger name="org.eclipse.rdf4j" additivity="false">
 		<level value="info" />
 		<appender-ref ref="STDOUT" />

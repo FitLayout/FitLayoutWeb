@@ -5,6 +5,8 @@
  */
 package cz.vutbr.fit.layout.web.ejb;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -41,21 +43,33 @@ public class StorageService
 
     private RDFStorage storage;
     
+    @PostConstruct
+    public void init()
+    {
+        getStorage();
+    }
+    
+    @PreDestroy
+    public void destroy()
+    {
+        closeStorage();
+    }
+    
+    //===============================================================================================
     
     public RDFStorage getStorage()
     {
         if (storage == null)
         {
             String path = configPath.replace("$HOME", System.getProperty("user.home"));
-            System.err.println("PPATH="+path);
             switch (configStorage)
             {
                 case "memory":
-                    storage = RDFStorage.createMemory(configPath);
+                    storage = RDFStorage.createMemory(path);
                     log.info("Using rdf4j memory storage in {}", path);
                     break;
                 case "native":
-                    storage = RDFStorage.createNative(configPath);
+                    storage = RDFStorage.createNative(path);
                     log.info("Using rdf4j native storage in {}", path);
                     break;
                 case "http":
@@ -67,6 +81,15 @@ public class StorageService
             }
         }
         return storage;
+    }
+    
+    public void closeStorage()
+    {
+        if (storage != null)
+        {
+            log.info("Closing storage");
+            storage.close();
+        }
     }
 
 }
