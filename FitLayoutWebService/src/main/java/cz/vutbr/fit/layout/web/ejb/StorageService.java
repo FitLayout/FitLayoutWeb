@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,27 +58,36 @@ public class StorageService
     
     //===============================================================================================
     
+    public boolean isReady()
+    {
+        return storage != null;
+    }
+    
     public RDFStorage getStorage()
     {
         if (storage == null)
         {
-            String path = configPath.replace("$HOME", System.getProperty("user.home"));
-            switch (configStorage)
-            {
-                case "memory":
-                    storage = RDFStorage.createMemory(path);
-                    log.info("Using rdf4j memory storage in {}", path);
-                    break;
-                case "native":
-                    storage = RDFStorage.createNative(path);
-                    log.info("Using rdf4j native storage in {}", path);
-                    break;
-                case "http":
-                    storage = RDFStorage.createHTTP(configServer, configRepository);
-                    log.info("Using rdf4j remote HTTP storage on {} / {}", configServer, configRepository);
-                    break;
-                default:
-                    log.error("Unknown storage type in config file: {}", configStorage);
+            try {
+                String path = configPath.replace("$HOME", System.getProperty("user.home"));
+                switch (configStorage)
+                {
+                    case "memory":
+                        storage = RDFStorage.createMemory(path);
+                        log.info("Using rdf4j memory storage in {}", path);
+                        break;
+                    case "native":
+                        storage = RDFStorage.createNative(path);
+                        log.info("Using rdf4j native storage in {}", path);
+                        break;
+                    case "http":
+                        storage = RDFStorage.createHTTP(configServer, configRepository);
+                        log.info("Using rdf4j remote HTTP storage on {} / {}", configServer, configRepository);
+                        break;
+                    default:
+                        log.error("Unknown storage type in config file: {}", configStorage);
+                }
+            } catch (RepositoryException e) {
+                storage = null;
             }
         }
         return storage;
