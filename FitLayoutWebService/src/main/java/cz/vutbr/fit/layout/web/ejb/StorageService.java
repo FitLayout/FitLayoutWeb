@@ -15,6 +15,7 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.RDFStorage;
 
 /**
@@ -43,6 +44,7 @@ public class StorageService
     String configPath;
 
     private RDFStorage storage;
+    private RDFArtifactRepository artifactRepository;
     
     @PostConstruct
     public void init()
@@ -93,6 +95,13 @@ public class StorageService
         return storage;
     }
     
+    public RDFArtifactRepository getArtifactRepository()
+    {
+        if (artifactRepository == null)
+            artifactRepository = new RDFArtifactRepository(getStorage());
+        return artifactRepository;
+    }
+
     public void closeStorage()
     {
         if (storage != null)

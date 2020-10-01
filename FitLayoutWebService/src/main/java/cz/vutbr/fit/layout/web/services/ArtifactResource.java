@@ -52,7 +52,7 @@ public class ArtifactResource
         CSSBoxTreeProvider provider = new CSSBoxTreeProvider();
         sm.addArtifactService(provider);
         //use RDF storage as the artifact repository
-        sm.setArtifactRepository(storage.getStorage());
+        sm.setArtifactRepository(storage.getArtifactRepository());
         System.out.println("Services: " + sm.findArtifactSevices().keySet());
     }
 
@@ -61,7 +61,7 @@ public class ArtifactResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response listArtifacts()
     {
-        Collection<IRI> list = storage.getStorage().getArtifactIRIs();
+        Collection<IRI> list = storage.getArtifactRepository().getArtifactIRIs();
         List<String> stringList = list.stream().map(Object::toString).collect(Collectors.toList());
         return Response.ok(new ResultValue(stringList)).build();
     }
@@ -79,7 +79,7 @@ public class ArtifactResource
                 checkStorageReady();
                 sm.setServiceParams(op, params.getParams());
                 Artifact page = ((ArtifactService) op).process(null);
-                storage.getStorage().addArtifact(page);
+                storage.getArtifactRepository().addArtifact(page);
                 return Response.ok(new ResultValue(page.getIri().toString())).build();
             } catch (RepositoryException | ServiceException e) {
                 return Response.serverError().entity(e.getMessage()).build();
