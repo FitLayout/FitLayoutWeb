@@ -4,12 +4,13 @@
  * Created on 2. 9. 2020, 13:52:29 by burgetr
  */
 
-package cz.vutbr.fit.layout.web.services;
+package cz.vutbr.fit.layout.web.data;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Definition of service parametres used for its invocation.
  * 
  * @author burgetr
  */

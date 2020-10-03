@@ -29,6 +29,7 @@ import cz.vutbr.fit.layout.rdf.BoxModelBuilder;
 import cz.vutbr.fit.layout.rdf.Serialization;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
+import cz.vutbr.fit.layout.web.data.ServiceParams;
 
 /**
  *

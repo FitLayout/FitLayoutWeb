@@ -31,6 +31,7 @@ import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.model.Artifact;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
+import cz.vutbr.fit.layout.web.data.ServiceParams;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 
 /**
