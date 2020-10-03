@@ -14,6 +14,7 @@ public class ResultErrorMessage extends Result
 {
     //standard messages
     public static final String E_NO_SERVICE = "No such service";
+    public static final String E_NO_ARTIFACT = "No such artifact";
     
     String message;
 

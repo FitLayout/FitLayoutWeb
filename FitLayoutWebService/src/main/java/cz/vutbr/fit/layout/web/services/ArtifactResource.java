@@ -5,6 +5,8 @@
  */
 package cz.vutbr.fit.layout.web.services;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,12 +17,16 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.Response.Status;
 
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
 import cz.vutbr.fit.layout.api.ArtifactService;
@@ -29,6 +35,7 @@ import cz.vutbr.fit.layout.api.ServiceException;
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.model.Artifact;
+import cz.vutbr.fit.layout.rdf.Serialization;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.ServiceParams;
@@ -97,6 +104,36 @@ public class ArtifactResource
         }
     }
 
+    @GET
+    @Path("/get/{iri}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getArtifact(@PathParam("iri") String iriValue)
+    {
+        try {
+            IRI iri = storage.getStorage().decodeIri(iriValue);
+            Model graph = storage.getArtifactRepository().getArtifactModel(iri);
+            if (!graph.isEmpty())
+            {
+                StreamingOutput stream = new StreamingOutput() {
+                    @Override
+                    public void write(OutputStream os) throws IOException, WebApplicationException {
+                        Serialization.modelToJsonLDStream(graph, os);
+                    }
+                };
+                return Response.ok(stream).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND).entity(
+                        new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + ": " + iri.toString())).build();
+            }
+        } catch (IllegalArgumentException e) {
+            return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+        } catch (RepositoryException | ServiceException e) {
+            return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+        }
+    }
+    
     //@GET
     //@Path("/nextId")
     public Response nextArtifactId()
