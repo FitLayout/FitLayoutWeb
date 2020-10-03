@@ -29,7 +29,8 @@ import cz.vutbr.fit.layout.api.ServiceException;
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.model.Artifact;
-import cz.vutbr.fit.layout.web.ResultValue;
+import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
+import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 
 /**
@@ -61,9 +62,13 @@ public class ArtifactResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response listArtifacts()
     {
-        Collection<IRI> list = storage.getArtifactRepository().getArtifactIRIs();
-        List<String> stringList = list.stream().map(Object::toString).collect(Collectors.toList());
-        return Response.ok(new ResultValue(stringList)).build();
+        try {
+            Collection<IRI> list = storage.getArtifactRepository().getArtifactIRIs();
+            List<String> stringList = list.stream().map(Object::toString).collect(Collectors.toList());
+            return Response.ok(new ResultValue(stringList)).build();
+        } catch (RepositoryException | ServiceException e) {
+            return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+        }
     }
     
     @POST
@@ -82,17 +87,17 @@ public class ArtifactResource
                 storage.getArtifactRepository().addArtifact(page);
                 return Response.ok(new ResultValue(page.getIri().toString())).build();
             } catch (RepositoryException | ServiceException e) {
-                return Response.serverError().entity(e.getMessage()).build();
+                return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
             }
         }
         else
         {
-            return Response.status(Status.NOT_FOUND).entity("{\"error\": \"No such service\"}").build();
+            return Response.status(Status.NOT_FOUND).entity(new ResultErrorMessage(ResultErrorMessage.E_NO_SERVICE)).build();
         }
     }
 
-    @GET
-    @Path("/nextId")
+    //@GET
+    //@Path("/nextId")
     public Response nextArtifactId()
     {
         try {
@@ -100,7 +105,7 @@ public class ArtifactResource
             long seq = storage.getStorage().getNextSequenceValue("page");
             return Response.ok(new ResultValue(seq)).build();
         } catch (RepositoryException e) {
-            return Response.serverError().entity(e.getMessage()).build();
+            return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
         }
     }
 

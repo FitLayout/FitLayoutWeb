@@ -27,6 +27,8 @@ import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.model.Artifact;
 import cz.vutbr.fit.layout.rdf.BoxModelBuilder;
 import cz.vutbr.fit.layout.rdf.Serialization;
+import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
+import cz.vutbr.fit.layout.web.data.ResultValue;
 
 /**
  *
@@ -45,7 +47,7 @@ public class InvokeResource
         sm = ServiceManager.create();
         CSSBoxTreeProvider provider = new CSSBoxTreeProvider();
         sm.addArtifactService(provider);
-        System.out.println("Services: " + sm.findArtifactSevices().keySet());
+        //System.out.println("Services: " + sm.findArtifactSevices().keySet());
     }
     
     @GET
@@ -64,12 +66,21 @@ public class InvokeResource
         {
             Map<String, Object> p = sm.getServiceParams(op);
             ServiceParams params = new ServiceParams(serviceId, p);
-            return Response.ok(params).build();
+            return Response.ok(new ResultValue(params)).build();
         }
         else
         {
-            return Response.status(Status.NOT_FOUND).entity("{\"error\": \"No such service\"}").build();
+            return Response.status(Status.NOT_FOUND).entity(new ResultErrorMessage(ResultErrorMessage.E_NO_SERVICE)).build();
         }
+    }
+    
+    @GET
+    @Path("/services")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getServiceList()
+    {
+        var result = sm.findArtifactSevices().keySet();
+        return Response.ok(new ResultValue(result)).build();
     }
     
     @POST
@@ -97,7 +108,7 @@ public class InvokeResource
         }
         else
         {
-            return Response.status(Status.NOT_FOUND).entity("{\"error\": \"No such service\"}").build();
+            return Response.status(Status.NOT_FOUND).entity(new ResultErrorMessage(ResultErrorMessage.E_NO_SERVICE)).build();
         }
     }
 

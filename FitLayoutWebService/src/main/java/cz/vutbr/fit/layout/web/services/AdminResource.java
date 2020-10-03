@@ -16,6 +16,8 @@ import javax.ws.rs.core.Response;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFParseException;
 
+import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
+import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 
 /**
@@ -45,14 +47,14 @@ public class AdminResource
                 storage.getStorage().importXML(owlFile);
                 cnt++;
             } catch (RDFParseException e) {
-                e.printStackTrace();
+                return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
             } catch (RepositoryException e) {
-                e.printStackTrace();
+                return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
             } catch (IOException e) {
-                e.printStackTrace();
+                return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
             }
         }
-        return Response.ok(cnt).build();
+        return Response.ok(new ResultValue(cnt)).build();
     }
     
     private static String loadResource(String filePath)
