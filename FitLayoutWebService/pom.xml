@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+	For creating an executable jar use:
+	mvn package
+	mvn payara-micro:bundle
+ -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -83,6 +88,7 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<finalName>fitlayout-web</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -92,7 +98,40 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>2.22.2</version>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>3.3.1</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>fish.payara.maven.plugins</groupId>
+				<artifactId>payara-micro-maven-plugin</artifactId>
+				<version>1.2.0</version>
+				<configuration>
+					<!-- <payaraVersion>${version.payara.micro}</payaraVersion> -->
+					<deployWar>true</deployWar>
+					<commandLineOptions>
+						<option>
+							<key>--port</key>
+							<value>8088</value>
+						</option>
+						<option>
+							<key>--autoBindHttp</key>
+						</option>
+					</commandLineOptions>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>bundle</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
-		<finalName>fitlayout-web</finalName>
 	</build>
+
 </project>
