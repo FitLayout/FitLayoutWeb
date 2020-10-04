@@ -23,10 +23,10 @@ import org.eclipse.rdf4j.model.Model;
 import cz.vutbr.fit.layout.api.ArtifactService;
 import cz.vutbr.fit.layout.api.ParametrizedOperation;
 import cz.vutbr.fit.layout.api.ServiceManager;
-import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.model.Artifact;
 import cz.vutbr.fit.layout.rdf.BoxModelBuilder;
 import cz.vutbr.fit.layout.rdf.Serialization;
+import cz.vutbr.fit.layout.web.FLConfig;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.ServiceParams;
@@ -44,11 +44,7 @@ public class InvokeResource
     @PostConstruct
     public void init()
     {
-        System.out.println("INIT");
-        sm = ServiceManager.create();
-        CSSBoxTreeProvider provider = new CSSBoxTreeProvider();
-        sm.addArtifactService(provider);
-        //System.out.println("Services: " + sm.findArtifactSevices().keySet());
+        sm = FLConfig.createServiceManager(null);
     }
     
     @GET

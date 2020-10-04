@@ -33,9 +33,9 @@ import cz.vutbr.fit.layout.api.ArtifactService;
 import cz.vutbr.fit.layout.api.ParametrizedOperation;
 import cz.vutbr.fit.layout.api.ServiceException;
 import cz.vutbr.fit.layout.api.ServiceManager;
-import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.model.Artifact;
 import cz.vutbr.fit.layout.rdf.Serialization;
+import cz.vutbr.fit.layout.web.FLConfig;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.ServiceParams;
@@ -56,13 +56,7 @@ public class ArtifactResource
     @PostConstruct
     public void init()
     {
-        //initialize the services
-        sm = ServiceManager.create();
-        CSSBoxTreeProvider provider = new CSSBoxTreeProvider();
-        sm.addArtifactService(provider);
-        //use RDF storage as the artifact repository
-        sm.setArtifactRepository(storage.getArtifactRepository());
-        System.out.println("Services: " + sm.findArtifactSevices().keySet());
+        sm = FLConfig.createServiceManager(storage.getArtifactRepository());
     }
 
     @GET
@@ -90,10 +84,22 @@ public class ArtifactResource
         {
             try {
                 checkStorageReady();
+                
+                //read the source artifact
+                Artifact sourceArtifact = null;
+                IRI sourceArtifactIri = null;
+                if (params.getParentIri() != null)
+                    sourceArtifactIri = storage.getStorage().decodeIri(params.getParentIri());
+                if (sourceArtifactIri != null)
+                    sourceArtifact = storage.getArtifactRepository().getArtifact(sourceArtifactIri); 
+                
+                //invoke the service
                 sm.setServiceParams(op, params.getParams());
-                Artifact page = ((ArtifactService) op).process(null);
-                storage.getArtifactRepository().addArtifact(page);
-                return Response.ok(new ResultValue(page.getIri().toString())).build();
+                Artifact newArtifact = ((ArtifactService) op).process(sourceArtifact);
+                storage.getArtifactRepository().addArtifact(newArtifact);
+                return Response.ok(new ResultValue(newArtifact.getIri().toString())).build();
+            } catch (IllegalArgumentException e) {
+                return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
             } catch (RepositoryException | ServiceException e) {
                 return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
             }

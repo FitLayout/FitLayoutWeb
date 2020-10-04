@@ -17,6 +17,7 @@ import java.util.Map;
 public class ServiceParams
 {
     private String serviceId;
+    private String parentIri;
     private Map<String, Object> params;
 
     public ServiceParams()
@@ -39,6 +40,16 @@ public class ServiceParams
     public void setServiceId(String serviceId)
     {
         this.serviceId = serviceId;
+    }
+
+    public String getParentIri()
+    {
+        return parentIri;
+    }
+
+    public void setParentIri(String parentIri)
+    {
+        this.parentIri = parentIri;
     }
 
     public Map<String, Object> getParams()
