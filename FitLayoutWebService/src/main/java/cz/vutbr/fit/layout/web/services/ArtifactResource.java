@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -111,7 +112,7 @@ public class ArtifactResource
     }
 
     @GET
-    @Path("/get/{iri}")
+    @Path("/item/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getArtifact(@PathParam("iri") String iriValue)
     {
@@ -133,6 +134,37 @@ public class ArtifactResource
                 return Response.status(Status.NOT_FOUND).entity(
                         new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + ": " + iri.toString())).build();
             }
+        } catch (IllegalArgumentException e) {
+            return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+        } catch (RepositoryException | ServiceException e) {
+            return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+        }
+    }
+    
+    @DELETE
+    @Path("/item/{iri}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeArtifact(@PathParam("iri") String iriValue)
+    {
+        try {
+            IRI iri = storage.getStorage().decodeIri(iriValue);
+            storage.getArtifactRepository().removeArtifact(iri);
+            return Response.ok(new ResultValue(iri.toString())).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+        } catch (RepositoryException | ServiceException e) {
+            return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+        }
+    }
+    
+    @DELETE
+    @Path("/clear")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeAll()
+    {
+        try {
+            storage.getArtifactRepository().clear();
+            return Response.ok(new ResultValue(null)).build();
         } catch (IllegalArgumentException e) {
             return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
         } catch (RepositoryException | ServiceException e) {
