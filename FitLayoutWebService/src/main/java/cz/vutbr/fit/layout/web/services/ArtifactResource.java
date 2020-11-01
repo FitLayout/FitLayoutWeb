@@ -90,7 +90,7 @@ public class ArtifactResource
                 Artifact sourceArtifact = null;
                 IRI sourceArtifactIri = null;
                 if (params.getParentIri() != null)
-                    sourceArtifactIri = storage.getStorage().decodeIri(params.getParentIri());
+                    sourceArtifactIri = storage.getArtifactRepository().getIriDecoder().decodeIri(params.getParentIri());
                 if (sourceArtifactIri != null)
                     sourceArtifact = storage.getArtifactRepository().getArtifact(sourceArtifactIri); 
                 
@@ -117,7 +117,7 @@ public class ArtifactResource
     public Response getArtifact(@PathParam("iri") String iriValue)
     {
         try {
-            IRI iri = storage.getStorage().decodeIri(iriValue);
+            IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
             Model graph = storage.getArtifactRepository().getArtifactModel(iri);
             if (!graph.isEmpty())
             {
@@ -147,7 +147,7 @@ public class ArtifactResource
     public Response removeArtifact(@PathParam("iri") String iriValue)
     {
         try {
-            IRI iri = storage.getStorage().decodeIri(iriValue);
+            IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
             storage.getArtifactRepository().removeArtifact(iri);
             return Response.ok(new ResultValue(iri.toString())).build();
         } catch (IllegalArgumentException e) {
