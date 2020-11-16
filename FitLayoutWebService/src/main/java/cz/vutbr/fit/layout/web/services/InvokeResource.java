@@ -61,7 +61,7 @@ public class InvokeResource
         ParametrizedOperation op = sm.findParmetrizedService(serviceId);
         if (op != null)
         {
-            Map<String, Object> p = sm.getServiceParams(op);
+            Map<String, Object> p = ServiceManager.getServiceParams(op);
             ServiceParams params = new ServiceParams(serviceId, p);
             return Response.ok(new ResultValue(params)).build();
         }
@@ -88,7 +88,7 @@ public class InvokeResource
         ParametrizedOperation op = sm.findParmetrizedService(params.getServiceId());
         if (op != null)
         {
-            sm.setServiceParams(op, params.getParams());
+            ServiceManager.setServiceParams(op, params.getParams());
             Artifact page = ((ArtifactService) op).process(null);
             
             BoxModelBuilder builder = new BoxModelBuilder();

@@ -95,7 +95,7 @@ public class ArtifactResource
                     sourceArtifact = storage.getArtifactRepository().getArtifact(sourceArtifactIri); 
                 
                 //invoke the service
-                sm.setServiceParams(op, params.getParams());
+                ServiceManager.setServiceParams(op, params.getParams());
                 Artifact newArtifact = ((ArtifactService) op).process(sourceArtifact);
                 storage.getArtifactRepository().addArtifact(newArtifact);
                 return Response.ok(new ResultValue(newArtifact.getIri().toString())).build();
