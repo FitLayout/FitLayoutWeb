@@ -28,13 +28,19 @@ import javax.ws.rs.core.Response.Status;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryResult;
 
 import cz.vutbr.fit.layout.api.ArtifactService;
 import cz.vutbr.fit.layout.api.ParametrizedOperation;
 import cz.vutbr.fit.layout.api.ServiceException;
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.model.Artifact;
+import cz.vutbr.fit.layout.ontology.BOX;
+import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.Serialization;
 import cz.vutbr.fit.layout.web.FLConfig;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
@@ -60,6 +66,34 @@ public class ArtifactResource
         sm = FLConfig.createServiceManager(storage.getArtifactRepository());
     }
 
+    @GET
+    @Path("/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getArtifactInfo()
+    {
+        try {
+            Collection<IRI> list = storage.getArtifactRepository().getArtifactIRIs();
+            Model graph = getArtifactModel(storage.getArtifactRepository(), list);
+            if (!graph.isEmpty())
+            {
+                StreamingOutput stream = new StreamingOutput() {
+                    @Override
+                    public void write(OutputStream os) throws IOException, WebApplicationException {
+                        Serialization.modelToJsonLDStream(graph, os);
+                    }
+                };
+                return Response.ok(stream).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND).entity(
+                        new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT)).build();
+            }
+        } catch (RepositoryException | ServiceException e) {
+            return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+        }
+    }
+    
     @GET
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
@@ -189,6 +223,24 @@ public class ArtifactResource
     {
         if (!storage.isReady())
             throw new RepositoryException("Storage not ready");
+    }
+    
+    private Model getArtifactModel(RDFArtifactRepository repo, Collection<IRI> subjects) throws RepositoryException 
+    {
+        Model model = new LinkedHashModel();
+        for (Resource subject : subjects)
+        {
+            RepositoryResult<Statement> result = repo.getStorage().getSubjectStatements(subject);
+            while (result.hasNext())
+            {
+                Statement st = result.next();
+                if (!st.getPredicate().equals(BOX.pngImage)) //filter out png images in the model to save space
+                    model.add(st);
+            }
+            result.close();
+        }
+        repo.getStorage().closeConnection();
+        return model;
     }
     
 }
