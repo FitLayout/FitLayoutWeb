@@ -7,8 +7,10 @@ package cz.vutbr.fit.layout.web;
 
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
+import cz.vutbr.fit.layout.puppeteer.PuppeteerTreeProvider;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.segm.Provider;
+import cz.vutbr.fit.layout.vips.VipsProvider;
 
 /**
  * FitLayout configuration utilities.
@@ -32,11 +34,17 @@ public class FLConfig
         CSSBoxTreeProvider cssboxProvider = new CSSBoxTreeProvider();
         sm.addArtifactService(cssboxProvider);
         
+        PuppeteerTreeProvider puppeteerProvider = new PuppeteerTreeProvider();
+        sm.addArtifactService(puppeteerProvider);
+        
         Provider segmProvider = new Provider();
         sm.addArtifactService(segmProvider);
         
+        VipsProvider vipsProvider = new VipsProvider();
+        sm.addArtifactService(vipsProvider);
+        
         //use RDF storage as the artifact repository
-        if (sm != null)
+        if (repo != null)
             sm.setArtifactRepository(repo);
         return sm;
     }

@@ -35,17 +35,22 @@
 		</dependency>
 		<dependency>
 			<groupId>cz.vutbr.fit.layout</groupId>
+			<artifactId>fitlayout-render-puppeteer</artifactId>
+			<version>${fitlayout.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>cz.vutbr.fit.layout</groupId>
 			<artifactId>fitlayout-segm-base</artifactId>
 			<version>${fitlayout.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>cz.vutbr.fit.layout</groupId>
-			<artifactId>fitlayout-storage-rdf</artifactId>
+			<artifactId>fitlayout-segm-vips</artifactId>
 			<version>${fitlayout.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>cz.vutbr.fit.layout</groupId>
-			<artifactId>fitlayout-tools</artifactId>
+			<artifactId>fitlayout-storage-rdf</artifactId>
 			<version>${fitlayout.version}</version>
 		</dependency>
 		
