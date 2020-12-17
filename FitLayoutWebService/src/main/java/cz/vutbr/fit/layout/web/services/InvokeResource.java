@@ -80,10 +80,7 @@ public class InvokeResource
         return Response.ok(new ResultValue(result)).build();
     }
     
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response invoke(ServiceParams params)
+    public Response invoke(ServiceParams params, String mimeType)
     {
         ParametrizedOperation op = sm.findParmetrizedService(params.getServiceId());
         if (op != null)
@@ -97,7 +94,7 @@ public class InvokeResource
             StreamingOutput stream = new StreamingOutput() {
                 @Override
                 public void write(OutputStream os) throws IOException, WebApplicationException {
-                    Serialization.modelToJsonLDStream(graph, os);
+                    Serialization.modelToStream(graph, os, mimeType);
                 }
             };
             
@@ -107,6 +104,22 @@ public class InvokeResource
         {
             return Response.status(Status.NOT_FOUND).entity(new ResultErrorMessage(ResultErrorMessage.E_NO_SERVICE)).build();
         }
+    }
+    
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(Serialization.JSONLD)
+    public Response invokeJSON(ServiceParams params)
+    {
+        return invoke(params, Serialization.JSONLD);
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(Serialization.TURTLE)
+    public Response invokeTurtle(ServiceParams params)
+    {
+        return invoke(params, Serialization.TURTLE);
     }
 
 }

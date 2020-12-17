@@ -66,10 +66,7 @@ public class ArtifactResource
         sm = FLConfig.createServiceManager(storage.getArtifactRepository());
     }
 
-    @GET
-    @Path("/")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getArtifactInfo()
+    private Response getArtifactInfo(String mimeType)
     {
         try {
             Collection<IRI> list = storage.getArtifactRepository().getArtifactIRIs();
@@ -79,7 +76,7 @@ public class ArtifactResource
                 StreamingOutput stream = new StreamingOutput() {
                     @Override
                     public void write(OutputStream os) throws IOException, WebApplicationException {
-                        Serialization.modelToJsonLDStream(graph, os);
+                        Serialization.modelToStream(graph, os, mimeType);
                     }
                 };
                 return Response.ok(stream).build();
@@ -92,6 +89,22 @@ public class ArtifactResource
         } catch (RepositoryException | ServiceException e) {
             return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
         }
+    }
+    
+    @GET
+    @Path("/")
+    @Produces(Serialization.JSONLD)
+    public Response getArtifactInfoJSON()
+    {
+        return getArtifactInfo(Serialization.JSONLD);
+    }
+    
+    @GET
+    @Path("/")
+    @Produces(Serialization.TURTLE)
+    public Response getArtifactInfoTurtle()
+    {
+        return getArtifactInfo(Serialization.TURTLE);
     }
     
     @GET
@@ -145,10 +158,7 @@ public class ArtifactResource
         }
     }
 
-    @GET
-    @Path("/item/{iri}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getArtifact(@PathParam("iri") String iriValue)
+    private Response getArtifact(String iriValue, String mimeType)
     {
         try {
             IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
@@ -158,21 +168,47 @@ public class ArtifactResource
                 StreamingOutput stream = new StreamingOutput() {
                     @Override
                     public void write(OutputStream os) throws IOException, WebApplicationException {
-                        Serialization.modelToJsonLDStream(graph, os);
+                        Serialization.modelToStream(graph, os, mimeType);
                     }
                 };
-                return Response.ok(stream).build();
+                return Response.ok(stream)
+                        .type(mimeType)
+                        .build();
             }
             else
             {
-                return Response.status(Status.NOT_FOUND).entity(
-                        new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + ": " + iri.toString())).build();
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + ": " + iri.toString()))
+                        .build();
             }
         } catch (IllegalArgumentException e) {
-            return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+            return Response.status(Status.BAD_REQUEST)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
         } catch (RepositoryException | ServiceException e) {
-            return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
         }
+    }
+    
+    @GET
+    @Path("/item/{iri}")
+    @Produces(Serialization.JSONLD)
+    public Response getArtifactJSON(@PathParam("iri") String iriValue)
+    {
+        return getArtifact(iriValue, Serialization.JSONLD);
+    }
+    
+    @GET
+    @Path("/item/{iri}")
+    @Produces(Serialization.TURTLE)
+    public Response getArtifactTurtle(@PathParam("iri") String iriValue)
+    {
+        return getArtifact(iriValue, Serialization.TURTLE);
     }
     
     @DELETE
