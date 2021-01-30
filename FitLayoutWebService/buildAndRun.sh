@@ -1,3 +1,3 @@
 #!/bin/sh
-mvn clean package && docker build -t com.airhacks/fitlayout-web .
-docker rm -f fitlayout-web || true && docker run -d -p 8080:8080 -p 4848:4848 --name fitlayout-web com.airhacks/fitlayout-web 
+mvn clean package && mvn payara-micro:bundle && docker build -t fitlayout/fitlayout-server .
+docker rm -f fitlayout-server || true && docker run -d -p 8400:8400 --name fitlayout-server --restart unless-stopped fitlayout/fitlayout-server 
