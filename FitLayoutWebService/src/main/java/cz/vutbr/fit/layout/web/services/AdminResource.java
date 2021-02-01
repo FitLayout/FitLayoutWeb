@@ -13,9 +13,12 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFParseException;
 
+import cz.vutbr.fit.layout.ontology.BOX;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
@@ -32,6 +35,17 @@ public class AdminResource
     @Inject
     private StorageService storage;
 
+    
+    @GET
+    @Path("/checkRepo")
+    public Response checkRepo()
+    {
+        Value val = storage.getStorage().getPropertyValue(BOX.Page, RDF.TYPE);
+        if (val != null)
+            return Response.ok(new ResultValue("Repository metadata is present.")).build();
+        else
+            return Response.ok(new ResultErrorMessage("Repository has not been initialized. Use /initRepo to fix this.")).build();
+    }
     
     @GET
     @Path("/initRepo")
