@@ -7,6 +7,7 @@ package cz.vutbr.fit.layout.web.services;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -66,10 +67,26 @@ public class ArtifactResource
         sm = FLConfig.createServiceManager(storage.getArtifactRepository());
     }
 
-    private Response getArtifactInfo(String mimeType)
+    /**
+     * Retrieves information about a given artifact without its contents.
+     * @param mimeType
+     * @param iri the artifact IRI or {@code null} for all artifacts
+     * @return
+     */
+    private Response getArtifactInfo(String iriValue, String mimeType)
     {
         try {
-            Collection<IRI> list = storage.getArtifactRepository().getArtifactIRIs();
+            Collection<IRI> list;
+            if (iriValue == null)
+            {
+                list = storage.getArtifactRepository().getArtifactIRIs();
+            }
+            else
+            {
+                IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
+                list = new ArrayList<>(1);
+                list.add(iri);
+            }
             Model graph = getArtifactModel(storage.getArtifactRepository(), list);
             if (!graph.isEmpty())
             {
@@ -79,32 +96,39 @@ public class ArtifactResource
                         Serialization.modelToStream(graph, os, mimeType);
                     }
                 };
-                return Response.ok(stream).build();
+                return Response.ok(stream)
+                        .type(mimeType)
+                        .build();
             }
             else
             {
-                return Response.status(Status.NOT_FOUND).entity(
-                        new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT)).build();
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT))
+                        .build();
             }
         } catch (RepositoryException | ServiceException e) {
-            return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
         }
     }
     
     @GET
     @Path("/")
     @Produces(Serialization.JSONLD)
-    public Response getArtifactInfoJSON()
+    public Response getArtifactsInfoJSON()
     {
-        return getArtifactInfo(Serialization.JSONLD);
+        return getArtifactInfo(null, Serialization.JSONLD);
     }
     
     @GET
     @Path("/")
     @Produces(Serialization.TURTLE)
-    public Response getArtifactInfoTurtle()
+    public Response getArtifactsInfoTurtle()
     {
-        return getArtifactInfo(Serialization.TURTLE);
+        return getArtifactInfo(null, Serialization.TURTLE);
     }
     
     @GET
@@ -240,6 +264,22 @@ public class ArtifactResource
         } catch (RepositoryException | ServiceException e) {
             return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
         }
+    }
+    
+    @GET
+    @Path("/info/{iri}")
+    @Produces(Serialization.JSONLD)
+    public Response getArtifactInfoJSON(@PathParam("iri") String iriValue)
+    {
+        return getArtifactInfo(iriValue, Serialization.JSONLD);
+    }
+    
+    @GET
+    @Path("/info/{iri}")
+    @Produces(Serialization.TURTLE)
+    public Response getArtifactInfoTurtle(@PathParam("iri") String iriValue)
+    {
+        return getArtifactInfo(iriValue, Serialization.TURTLE);
     }
     
     //@GET
