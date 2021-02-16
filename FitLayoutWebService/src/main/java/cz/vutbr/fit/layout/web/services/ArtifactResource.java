@@ -32,6 +32,7 @@ import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 
@@ -304,18 +305,24 @@ public class ArtifactResource
     private Model getArtifactModel(RDFArtifactRepository repo, Collection<IRI> subjects) throws RepositoryException 
     {
         Model model = new LinkedHashModel();
-        for (Resource subject : subjects)
+        try (RepositoryConnection con = repo.getStorage().getConnection())
         {
-            RepositoryResult<Statement> result = repo.getStorage().getSubjectStatements(subject);
-            while (result.hasNext())
+            for (Resource subject : subjects)
             {
-                Statement st = result.next();
-                if (!st.getPredicate().equals(BOX.pngImage)) //filter out png images in the model to save space
-                    model.add(st);
+                RepositoryResult<Statement> result = con.getStatements(subject, null, null, true);
+                try {
+                    while (result.hasNext())
+                    {
+                        Statement st = result.next();
+                        if (!st.getPredicate().equals(BOX.pngImage)) //filter out png images in the model to save space
+                            model.add(st);
+                    }
+                }
+                finally {
+                    result.close();
+                }
             }
-            result.close();
         }
-        repo.getStorage().closeConnection();
         return model;
     }
     
