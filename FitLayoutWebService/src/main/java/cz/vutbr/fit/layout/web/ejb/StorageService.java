@@ -28,19 +28,19 @@ public class StorageService
     private static Logger log = LoggerFactory.getLogger(StorageService.class);
 
     @Inject
-    @ConfigProperty(name = "storageType")
+    @ConfigProperty(name = "fitlayout.rdf.storage")
     String configStorage;
 
     @Inject
-    @ConfigProperty(name = "rdfServer")
+    @ConfigProperty(name = "fitlayout.rdf.server")
     String configServer;
 
     @Inject
-    @ConfigProperty(name = "rdfRepository")
+    @ConfigProperty(name = "fitlayout.rdf.repository")
     String configRepository;
 
     @Inject
-    @ConfigProperty(name = "rdfPath")
+    @ConfigProperty(name = "fitlayout.rdf.path")
     String configPath;
 
     private RDFStorage storage;
