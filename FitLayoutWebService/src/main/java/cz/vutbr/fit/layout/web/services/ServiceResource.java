@@ -3,6 +3,7 @@ package cz.vutbr.fit.layout.web.services;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -27,16 +28,18 @@ import cz.vutbr.fit.layout.model.Artifact;
 import cz.vutbr.fit.layout.rdf.BoxModelBuilder;
 import cz.vutbr.fit.layout.rdf.Serialization;
 import cz.vutbr.fit.layout.web.FLConfig;
+import cz.vutbr.fit.layout.web.data.ArtifactServiceDescr;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.ServiceParams;
 
 /**
- *
+ * Service listing and invocation.
+ * 
  * @author burgetr
  */
-@Path("invoke")
-public class InvokeResource
+@Path("service")
+public class ServiceResource
 {
     private ServiceManager sm;
     
@@ -48,6 +51,7 @@ public class InvokeResource
     }
     
     @GET
+    @Path("/ping")
     public String ping()
     {
         return "ok";
@@ -72,11 +76,15 @@ public class InvokeResource
     }
     
     @GET
-    @Path("/services")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getServiceList()
     {
-        var result = sm.findArtifactSevices().keySet();
+        var services = sm.findArtifactSevices().values();
+        var result = new ArrayList<ArtifactServiceDescr>();
+        for (ArtifactService serv : services)
+        {
+            result.add(new ArtifactServiceDescr(serv));
+        }
         return Response.ok(new ResultValue(result)).build();
     }
     
