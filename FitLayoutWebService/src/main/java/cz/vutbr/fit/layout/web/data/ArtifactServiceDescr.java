@@ -23,6 +23,8 @@ import cz.vutbr.fit.layout.impl.ParameterString;
 public class ArtifactServiceDescr
 {
     public String id;
+    public String name;
+    public String description;
     public String consumes;
     public String produces;
     public Map<String, ParamDescr> params;
@@ -30,6 +32,8 @@ public class ArtifactServiceDescr
     public ArtifactServiceDescr(ArtifactService service)
     {
         id = service.getId();
+        name = service.getName();
+        description = service.getDescription();
         if (service.getConsumes() != null)
             consumes = service.getConsumes().toString();
         if (service.getProduces() != null)
