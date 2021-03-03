@@ -5,7 +5,7 @@
  */
 package cz.vutbr.fit.layout.web.data;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import cz.vutbr.fit.layout.api.ArtifactService;
@@ -45,7 +45,7 @@ public class ArtifactServiceDescr
 
     private void addParams(ParametrizedOperation op)
     {
-        params = new HashMap<>();
+        params = new LinkedHashMap<>();
         for (Parameter p : op.getParams())
         {
             final ParamDescr descr;
