@@ -90,7 +90,10 @@ public class ServiceResource
     
     public Response invoke(ServiceParams params, String mimeType)
     {
-        ParametrizedOperation op = sm.findParmetrizedService(params.getServiceId());
+        ParametrizedOperation op = null;
+        if (params.getServiceId() != null)
+            op = sm.findParmetrizedService(params.getServiceId());
+        
         if (op != null)
         {
             ServiceManager.setServiceParams(op, params.getParams());

@@ -152,7 +152,9 @@ public class ArtifactResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response create(ServiceParams params)
     {
-        ParametrizedOperation op = sm.findParmetrizedService(params.getServiceId());
+        ParametrizedOperation op = null;
+        if (params.getServiceId() != null)
+            op = sm.findParmetrizedService(params.getServiceId());
         if (op != null)
         {
             try {
