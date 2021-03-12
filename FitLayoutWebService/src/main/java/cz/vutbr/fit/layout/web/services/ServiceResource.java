@@ -51,31 +51,6 @@ public class ServiceResource
     }
     
     @GET
-    @Path("/ping")
-    public String ping()
-    {
-        return "ok";
-    }
-    
-    @GET
-    @Path("/config")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getServiceConfig(@QueryParam("id") String serviceId)
-    {
-        ParametrizedOperation op = sm.findParmetrizedService(serviceId);
-        if (op != null)
-        {
-            Map<String, Object> p = ServiceManager.getServiceParams(op);
-            ServiceParams params = new ServiceParams(serviceId, p);
-            return Response.ok(new ResultValue(params)).build();
-        }
-        else
-        {
-            return Response.status(Status.NOT_FOUND).entity(new ResultErrorMessage(ResultErrorMessage.E_NO_SERVICE)).build();
-        }
-    }
-    
-    @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getServiceList()
     {
@@ -102,6 +77,35 @@ public class ServiceResource
     public Response invokeTurtle(ServiceParams params)
     {
         return invoke(params, Serialization.TURTLE);
+    }
+    
+    //===========================================================================================
+    
+    @GET
+    @Path("/config")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getServiceConfig(@QueryParam("id") String serviceId)
+    {
+        ParametrizedOperation op = sm.findParmetrizedService(serviceId);
+        if (op != null)
+        {
+            Map<String, Object> p = ServiceManager.getServiceParams(op);
+            ServiceParams params = new ServiceParams(serviceId, p);
+            return Response.ok(new ResultValue(params)).build();
+        }
+        else
+        {
+            return Response.status(Status.NOT_FOUND).entity(new ResultErrorMessage(ResultErrorMessage.E_NO_SERVICE)).build();
+        }
+    }
+    
+    //===========================================================================================
+    
+    @GET
+    @Path("/ping")
+    public String ping()
+    {
+        return "ok";
     }
     
     //===========================================================================================
