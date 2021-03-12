@@ -11,6 +11,15 @@ import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.puppeteer.PuppeteerTreeProvider;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.segm.BasicSegmProvider;
+import cz.vutbr.fit.layout.segm.op.CollapseAreasOperator;
+import cz.vutbr.fit.layout.segm.op.FindLineOperator;
+import cz.vutbr.fit.layout.segm.op.FlattenTreeOperator;
+import cz.vutbr.fit.layout.segm.op.GroupByDOMOperator;
+import cz.vutbr.fit.layout.segm.op.HomogeneousLeafOperator;
+import cz.vutbr.fit.layout.segm.op.MultiLineOperator;
+import cz.vutbr.fit.layout.segm.op.SortByLinesOperator;
+import cz.vutbr.fit.layout.segm.op.SortByPositionOperator;
+import cz.vutbr.fit.layout.segm.op.SuperAreaOperator;
 import cz.vutbr.fit.layout.vips.VipsProvider;
 
 /**
@@ -40,6 +49,17 @@ public class FLConfig
         sm.addArtifactService(new BasicSegmProvider());
         sm.addArtifactService(new VipsProvider());
         sm.addArtifactService(new BCSProvider());
+        
+        //operators
+        sm.addAreaTreeOperator(new CollapseAreasOperator());
+        sm.addAreaTreeOperator(new FindLineOperator());
+        sm.addAreaTreeOperator(new FlattenTreeOperator());
+        sm.addAreaTreeOperator(new MultiLineOperator());
+        sm.addAreaTreeOperator(new SortByPositionOperator());
+        sm.addAreaTreeOperator(new SortByLinesOperator());
+        sm.addAreaTreeOperator(new SuperAreaOperator());
+        sm.addAreaTreeOperator(new GroupByDOMOperator());
+        sm.addAreaTreeOperator(new HomogeneousLeafOperator());
         
         //use RDF storage as the artifact repository
         if (repo != null)
