@@ -88,6 +88,24 @@ public class ServiceResource
         return Response.ok(new ResultValue(result)).build();
     }
     
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(Serialization.JSONLD)
+    public Response invokeJSON(ServiceParams params)
+    {
+        return invoke(params, Serialization.JSONLD);
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(Serialization.TURTLE)
+    public Response invokeTurtle(ServiceParams params)
+    {
+        return invoke(params, Serialization.TURTLE);
+    }
+    
+    //===========================================================================================
+
     public Response invoke(ServiceParams params, String mimeType)
     {
         ParametrizedOperation op = null;
@@ -117,20 +135,6 @@ public class ServiceResource
         }
     }
     
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(Serialization.JSONLD)
-    public Response invokeJSON(ServiceParams params)
-    {
-        return invoke(params, Serialization.JSONLD);
-    }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(Serialization.TURTLE)
-    public Response invokeTurtle(ServiceParams params)
-    {
-        return invoke(params, Serialization.TURTLE);
-    }
-
+    
 }

@@ -6,10 +6,11 @@
 package cz.vutbr.fit.layout.web;
 
 import cz.vutbr.fit.layout.api.ServiceManager;
+import cz.vutbr.fit.layout.bcs.BCSProvider;
 import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.puppeteer.PuppeteerTreeProvider;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
-import cz.vutbr.fit.layout.segm.Provider;
+import cz.vutbr.fit.layout.segm.BasicSegmProvider;
 import cz.vutbr.fit.layout.vips.VipsProvider;
 
 /**
@@ -31,17 +32,14 @@ public class FLConfig
         //initialize the services
         ServiceManager sm = ServiceManager.create();
         
-        CSSBoxTreeProvider cssboxProvider = new CSSBoxTreeProvider();
-        sm.addArtifactService(cssboxProvider);
+        //renderers
+        sm.addArtifactService(new CSSBoxTreeProvider());
+        sm.addArtifactService(new PuppeteerTreeProvider());
         
-        PuppeteerTreeProvider puppeteerProvider = new PuppeteerTreeProvider();
-        sm.addArtifactService(puppeteerProvider);
-        
-        Provider segmProvider = new Provider();
-        sm.addArtifactService(segmProvider);
-        
-        VipsProvider vipsProvider = new VipsProvider();
-        sm.addArtifactService(vipsProvider);
+        //segmentation
+        sm.addArtifactService(new BasicSegmProvider());
+        sm.addArtifactService(new VipsProvider());
+        sm.addArtifactService(new BCSProvider());
         
         //use RDF storage as the artifact repository
         if (repo != null)

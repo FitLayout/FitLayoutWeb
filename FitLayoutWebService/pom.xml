@@ -50,6 +50,11 @@
 		</dependency>
 		<dependency>
 			<groupId>cz.vutbr.fit.layout</groupId>
+			<artifactId>fitlayout-segm-bcs</artifactId>
+			<version>${fitlayout.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>cz.vutbr.fit.layout</groupId>
 			<artifactId>fitlayout-storage-rdf</artifactId>
 			<version>${fitlayout.version}</version>
 		</dependency>
