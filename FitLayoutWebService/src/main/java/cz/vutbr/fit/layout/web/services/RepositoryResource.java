@@ -75,4 +75,25 @@ public class RepositoryResource
         
     }
     
+    @GET
+    @Path("/type/{iri}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getSubjectType(@PathParam("iri") String iriValue)
+    {
+        try {
+            final IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
+            final IRI type = storage.getStorage().getSubjectType(iri);
+            if (type != null)
+                return Response.ok(new ResultValue(type.toString())).build();
+            else
+                return Response.ok(new ResultValue("unknown")).build();
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        }
+        
+    }
+    
 }
