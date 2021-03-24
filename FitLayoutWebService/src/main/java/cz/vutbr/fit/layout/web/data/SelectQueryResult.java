@@ -54,26 +54,28 @@ public class SelectQueryResult
     
     public static class ResultBody
     {
-        public Map<String, ResultBinding> bindings;
+        public List<Map<String, ResultBinding>> bindings;
         
         public ResultBody()
         {
-            bindings = new HashMap<>();
+            bindings = new ArrayList<>();
         }
         
         public void add(BindingSet bset)
         {
+            Map<String, ResultBinding> map = new HashMap<>();
             for (Binding b : bset)
             {
                 if (b.getValue() instanceof IRI)
                 {
-                    bindings.put(b.getName(), new IriBinding((IRI) b.getValue()));
+                    map.put(b.getName(), new IriBinding((IRI) b.getValue()));
                 }
                 else if (b.getValue() instanceof Literal)
                 {
-                    bindings.put(b.getName(), new LiteralBinding(b.getValue().stringValue(), ((Literal) b.getValue()).getDatatype()));
+                    map.put(b.getName(), new LiteralBinding(b.getValue().stringValue(), ((Literal) b.getValue()).getDatatype()));
                 }
             }
+            bindings.add(map);
         }
     }
     
