@@ -18,6 +18,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 
 import cz.vutbr.fit.layout.rdf.Serialization;
@@ -76,6 +78,39 @@ public class RepositoryResource
     }
     
     @GET
+    @Path("/subject/{subjIri}/{propertyIri}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getSubjectValue(@PathParam("subjIri") String subjIriValue, @PathParam("propertyIri") String propertyIriValue)
+    {
+        try {
+            final IRI subjIri = storage.getArtifactRepository().getIriDecoder().decodeIri(subjIriValue);
+            final IRI propertyIri = storage.getArtifactRepository().getIriDecoder().decodeIri(propertyIriValue);
+            final Value val = storage.getStorage().getPropertyValue(subjIri, propertyIri);
+            if (val instanceof IRI)
+            {
+                final var ret = new SelectQueryResult.IriBinding((IRI) val);
+                return Response.ok(new ResultValue(ret)).build();
+            }
+            else if (val instanceof Literal)
+            {
+                final var ret = new SelectQueryResult.LiteralBinding(val.stringValue(), ((Literal) val).getDatatype());
+                return Response.ok(new ResultValue(ret)).build();
+            }
+            else
+            {
+                final var ret = new SelectQueryResult.NullBinding();
+                return Response.ok(new ResultValue(ret)).build();
+            }
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        }
+        
+    }
+    
+    @GET
     @Path("/type/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSubjectType(@PathParam("iri") String iriValue)
@@ -93,7 +128,6 @@ public class RepositoryResource
                     .entity(new ResultErrorMessage(e.getMessage()))
                     .build();
         }
-        
     }
     
 }

@@ -106,4 +106,13 @@ public class SelectQueryResult
         }
     }
     
+    public static class NullBinding extends ResultBinding
+    {
+        public NullBinding()
+        {
+            type = "unknown";
+            value = null;
+        }
+    }
+    
 }
