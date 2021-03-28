@@ -27,6 +27,7 @@ import cz.vutbr.fit.layout.rdf.StorageException;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.SelectQueryResult;
+import cz.vutbr.fit.layout.web.data.SubjectDescriptionResult;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 
 /**
@@ -129,5 +130,27 @@ public class RepositoryResource
                     .build();
         }
     }
+    
+    @GET
+    @Path("/describe/{iri}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response describeSubject(@PathParam("iri") String iriValue)
+    {
+        try {
+            final IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
+            final String query = "SELECT ?p ?v WHERE { <" + iri.toString() + "> ?p ?v }";
+            final List<BindingSet> bindings = storage.getStorage().executeSafeTupleQuery(query);
+            final SubjectDescriptionResult result = new SubjectDescriptionResult(bindings);
+            return Response.ok(new ResultValue(result)).build();
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        }
+        
+    }
+    
+
     
 }
