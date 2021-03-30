@@ -26,6 +26,7 @@ import cz.vutbr.fit.layout.api.ParametrizedOperation;
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.model.Artifact;
 import cz.vutbr.fit.layout.rdf.BoxModelBuilder;
+import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.Serialization;
 import cz.vutbr.fit.layout.web.FLConfig;
 import cz.vutbr.fit.layout.web.data.ArtifactServiceDescr;
@@ -121,7 +122,7 @@ public class ServiceResource
             ServiceManager.setServiceParams(op, params.getParams());
             Artifact page = ((ArtifactService) op).process(null);
             
-            BoxModelBuilder builder = new BoxModelBuilder();
+            BoxModelBuilder builder = new BoxModelBuilder(((RDFArtifactRepository) sm.getArtifactRepository()).getIriFactory());
             Model graph = builder.createGraph(page);
             
             StreamingOutput stream = new StreamingOutput() {

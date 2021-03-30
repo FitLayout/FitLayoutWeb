@@ -174,6 +174,7 @@ public class ArtifactResource
                 storage.getArtifactRepository().addArtifact(newArtifact);
                 return Response.ok(new ResultValue(newArtifact.getIri().toString())).build();
             } catch (IllegalArgumentException e) {
+                e.printStackTrace();
                 return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
             } catch (RepositoryException | ServiceException e) {
                 return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
@@ -287,7 +288,7 @@ public class ArtifactResource
     
     //@GET
     //@Path("/nextId")
-    public Response nextArtifactId()
+    /*public Response nextArtifactId()
     {
         try {
             checkStorageReady();
@@ -296,7 +297,7 @@ public class ArtifactResource
         } catch (RepositoryException e) {
             return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
         }
-    }
+    }*/
 
     private void checkStorageReady() throws RepositoryException
     {
