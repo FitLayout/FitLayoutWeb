@@ -58,6 +58,11 @@
 			<artifactId>fitlayout-storage-rdf</artifactId>
 			<version>${fitlayout.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>cz.vutbr.fit.layout</groupId>
+			<artifactId>fitlayout-text</artifactId>
+			<version>${fitlayout.version}</version>
+		</dependency>
 		
 		<!-- rdf4j dependencies -->
 		<dependency>

@@ -23,6 +23,7 @@ import cz.vutbr.fit.layout.segm.op.MultiLineOperator;
 import cz.vutbr.fit.layout.segm.op.SortByLinesOperator;
 import cz.vutbr.fit.layout.segm.op.SortByPositionOperator;
 import cz.vutbr.fit.layout.segm.op.SuperAreaOperator;
+import cz.vutbr.fit.layout.text.op.TagEntitiesOperator;
 import cz.vutbr.fit.layout.vips.VipsProvider;
 
 /**
@@ -56,7 +57,7 @@ public class FLConfig
         sm.addArtifactService(new VipsProvider());
         sm.addArtifactService(new BCSProvider());
         
-        //operators
+        //standard operators
         addAreaTreeOperator(sm, new CollapseAreasOperator());
         addAreaTreeOperator(sm, new FindLineOperator());
         addAreaTreeOperator(sm, new FlattenTreeOperator());
@@ -66,6 +67,9 @@ public class FLConfig
         addAreaTreeOperator(sm, new SuperAreaOperator());
         addAreaTreeOperator(sm, new GroupByDOMOperator());
         addAreaTreeOperator(sm, new HomogeneousLeafOperator());
+        
+        //text module
+        addAreaTreeOperator(sm, new TagEntitiesOperator());
         
         //use RDF storage as the artifact repository
         if (repo != null)
