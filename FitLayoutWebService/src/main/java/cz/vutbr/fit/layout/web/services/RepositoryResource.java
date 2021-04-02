@@ -9,11 +9,13 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -61,11 +63,11 @@ public class RepositoryResource
     @GET
     @Path("/subject/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response querySubject(@PathParam("iri") String iriValue)
+    public Response querySubject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
         try {
             final IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
-            final String query = "SELECT ?p ?v WHERE { <" + iri.toString() + "> ?p ?v }";
+            final String query = "SELECT ?p ?v WHERE { <" + iri.toString() + "> ?p ?v } LIMIT " + limit;
             final List<BindingSet> bindings = storage.getStorage().executeSafeTupleQuery(query);
             final SelectQueryResult result = new SelectQueryResult(bindings);
             return Response.ok(new ResultValue(result)).build();
@@ -75,7 +77,25 @@ public class RepositoryResource
                     .entity(new ResultErrorMessage(e.getMessage()))
                     .build();
         }
-        
+    }
+    
+    @GET
+    @Path("/object/{iri}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response queryObject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
+    {
+        try {
+            final IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
+            final String query = "SELECT ?v ?p WHERE { ?v ?p <" + iri.toString() + "> } LIMIT " + limit;
+            final List<BindingSet> bindings = storage.getStorage().executeSafeTupleQuery(query);
+            final SelectQueryResult result = new SelectQueryResult(bindings);
+            return Response.ok(new ResultValue(result)).build();
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        }
     }
     
     @GET
@@ -108,7 +128,6 @@ public class RepositoryResource
                     .entity(new ResultErrorMessage(e.getMessage()))
                     .build();
         }
-        
     }
     
     @GET
@@ -148,9 +167,6 @@ public class RepositoryResource
                     .entity(new ResultErrorMessage(e.getMessage()))
                     .build();
         }
-        
     }
-    
-
     
 }
