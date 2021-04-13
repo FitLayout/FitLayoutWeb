@@ -26,6 +26,7 @@ import org.eclipse.rdf4j.query.BindingSet;
 
 import cz.vutbr.fit.layout.rdf.Serialization;
 import cz.vutbr.fit.layout.rdf.StorageException;
+import cz.vutbr.fit.layout.web.data.QuadrupleData;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.SelectQueryResult;
@@ -167,6 +168,42 @@ public class RepositoryResource
                     .entity(new ResultErrorMessage(e.getMessage()))
                     .build();
         }
+    }
+    
+    @POST
+    @Path("/add")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addQuadruple(QuadrupleData quad)
+    {
+        if (quad.isOk())
+        {
+            try {
+                final IRI sIri = storage.getArtifactRepository().getIriDecoder().decodeIri(quad.getS());
+                final IRI pIri = storage.getArtifactRepository().getIriDecoder().decodeIri(quad.getP());
+                final IRI aIri = storage.getArtifactRepository().getIriDecoder().decodeIri(quad.getArtifact());
+                if (quad.getO() != null)
+                {
+                    final IRI oIri = storage.getArtifactRepository().getIriDecoder().decodeIri(quad.getO());
+                    storage.getStorage().add(sIri, pIri, oIri, aIri);
+                }
+                else if (quad.getValue() != null)
+                {
+                    storage.getStorage().addValue(sIri, pIri, quad.getValue(), aIri);
+                }
+                return Response.ok(new ResultValue(null)).build();
+            } catch (StorageException e) {
+                return Response.serverError()
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(e.getMessage()))
+                        .build();
+            }
+        }
+        else
+        {
+            return Response.serverError().entity(new ResultErrorMessage("error", "Must provide {s, p, (o | value), artifact}")).build();
+        }
+        
     }
     
 }
