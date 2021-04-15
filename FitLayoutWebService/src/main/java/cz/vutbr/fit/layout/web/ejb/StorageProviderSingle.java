@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.RDFStorage;
+import cz.vutbr.fit.layout.web.data.RepositoryInfo;
 
 /**
  * Storage provider implementation for a single storage mode.
@@ -57,9 +58,10 @@ public class StorageProviderSingle implements StorageProvider
     }
     
     @Override
-    public List<String> getRepositoryList()
+    public List<RepositoryInfo> getRepositoryList()
     {
-        return List.of(DEFAULT_REPOSITORY);
+        final RepositoryInfo info = new RepositoryInfo(DEFAULT_REPOSITORY, "The default preconfigured repository");
+        return List.of(info);
     }
 
     @Override
