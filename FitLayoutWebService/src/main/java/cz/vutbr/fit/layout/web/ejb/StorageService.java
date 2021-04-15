@@ -5,6 +5,8 @@
  */
 package cz.vutbr.fit.layout.web.ejb;
 
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.RDFStorage;
+import cz.vutbr.fit.layout.web.data.RepositoryInfo;
 
 /**
  * 
@@ -72,6 +75,11 @@ public class StorageService
     public boolean isReady()
     {
         return provider.isReady();
+    }
+    
+    public List<RepositoryInfo> getRepositories()
+    {
+        return provider.getRepositoryList();
     }
     
     public RDFStorage getStorage(String userId, String repoId)
