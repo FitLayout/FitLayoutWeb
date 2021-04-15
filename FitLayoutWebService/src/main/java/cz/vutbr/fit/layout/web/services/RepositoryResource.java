@@ -18,12 +18,18 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
 
+import cz.vutbr.fit.layout.api.IRIDecoder;
+import cz.vutbr.fit.layout.ontology.BOX;
+import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
+import cz.vutbr.fit.layout.rdf.RDFStorage;
 import cz.vutbr.fit.layout.rdf.Serialization;
 import cz.vutbr.fit.layout.rdf.StorageException;
 import cz.vutbr.fit.layout.web.data.QuadrupleData;
@@ -38,21 +44,38 @@ import cz.vutbr.fit.layout.web.ejb.StorageService;
  * 
  * @author burgetr
  */
-@Path("repository")
+@Path("r/{repoId}/repository")
 public class RepositoryResource
 {
     @Inject
     private StorageService storage;
 
+    @PathParam("repoId")
+    private String repoId;
+    
+    private String userId;
+    
     @POST
+    @Path("/query")
     @Consumes(Serialization.SPARQL_QUERY)
     @Produces(MediaType.APPLICATION_JSON)
     public Response repositoryQuery(String query)
     {
         try {
-            final List<BindingSet> bindings = storage.getStorage().executeSafeTupleQuery(query);
-            final SelectQueryResult result = new SelectQueryResult(bindings);
-            return Response.ok(new ResultValue(result)).build();
+            final RDFStorage rdfst = storage.getStorage(userId, repoId);
+            if (rdfst != null)
+            {
+                final List<BindingSet> bindings = rdfst.executeSafeTupleQuery(query);
+                final SelectQueryResult result = new SelectQueryResult(bindings);
+                return Response.ok(new ResultValue(result)).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
         } catch (StorageException e) {
             return Response.serverError()
                     .type(MediaType.APPLICATION_JSON)
@@ -67,11 +90,22 @@ public class RepositoryResource
     public Response querySubject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
         try {
-            final IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
-            final String query = "SELECT ?p ?v WHERE { <" + iri.toString() + "> ?p ?v } LIMIT " + limit;
-            final List<BindingSet> bindings = storage.getStorage().executeSafeTupleQuery(query);
-            final SelectQueryResult result = new SelectQueryResult(bindings);
-            return Response.ok(new ResultValue(result)).build();
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            if (repo != null)
+            {
+                final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
+                final String query = "SELECT ?p ?v WHERE { <" + iri.toString() + "> ?p ?v } LIMIT " + limit;
+                final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
+                final SelectQueryResult result = new SelectQueryResult(bindings);
+                return Response.ok(new ResultValue(result)).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
         } catch (StorageException e) {
             return Response.serverError()
                     .type(MediaType.APPLICATION_JSON)
@@ -86,11 +120,22 @@ public class RepositoryResource
     public Response queryObject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
         try {
-            final IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
-            final String query = "SELECT ?v ?p WHERE { ?v ?p <" + iri.toString() + "> } LIMIT " + limit;
-            final List<BindingSet> bindings = storage.getStorage().executeSafeTupleQuery(query);
-            final SelectQueryResult result = new SelectQueryResult(bindings);
-            return Response.ok(new ResultValue(result)).build();
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            if (repo != null)
+            {
+                final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
+                final String query = "SELECT ?v ?p WHERE { ?v ?p <" + iri.toString() + "> } LIMIT " + limit;
+                final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
+                final SelectQueryResult result = new SelectQueryResult(bindings);
+                return Response.ok(new ResultValue(result)).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
         } catch (StorageException e) {
             return Response.serverError()
                     .type(MediaType.APPLICATION_JSON)
@@ -105,23 +150,34 @@ public class RepositoryResource
     public Response getSubjectValue(@PathParam("subjIri") String subjIriValue, @PathParam("propertyIri") String propertyIriValue)
     {
         try {
-            final IRI subjIri = storage.getArtifactRepository().getIriDecoder().decodeIri(subjIriValue);
-            final IRI propertyIri = storage.getArtifactRepository().getIriDecoder().decodeIri(propertyIriValue);
-            final Value val = storage.getStorage().getPropertyValue(subjIri, propertyIri);
-            if (val instanceof IRI)
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            if (repo != null)
             {
-                final var ret = new SelectQueryResult.IriBinding((IRI) val);
-                return Response.ok(new ResultValue(ret)).build();
-            }
-            else if (val instanceof Literal)
-            {
-                final var ret = new SelectQueryResult.LiteralBinding(val.stringValue(), ((Literal) val).getDatatype());
-                return Response.ok(new ResultValue(ret)).build();
+                final IRI subjIri = repo.getIriDecoder().decodeIri(subjIriValue);
+                final IRI propertyIri = repo.getIriDecoder().decodeIri(propertyIriValue);
+                final Value val = repo.getStorage().getPropertyValue(subjIri, propertyIri);
+                if (val instanceof IRI)
+                {
+                    final var ret = new SelectQueryResult.IriBinding((IRI) val);
+                    return Response.ok(new ResultValue(ret)).build();
+                }
+                else if (val instanceof Literal)
+                {
+                    final var ret = new SelectQueryResult.LiteralBinding(val.stringValue(), ((Literal) val).getDatatype());
+                    return Response.ok(new ResultValue(ret)).build();
+                }
+                else
+                {
+                    final var ret = new SelectQueryResult.NullBinding();
+                    return Response.ok(new ResultValue(ret)).build();
+                }
             }
             else
             {
-                final var ret = new SelectQueryResult.NullBinding();
-                return Response.ok(new ResultValue(ret)).build();
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
             }
         } catch (StorageException e) {
             return Response.serverError()
@@ -137,12 +193,23 @@ public class RepositoryResource
     public Response getSubjectType(@PathParam("iri") String iriValue)
     {
         try {
-            final IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
-            final IRI type = storage.getStorage().getSubjectType(iri);
-            if (type != null)
-                return Response.ok(new ResultValue(type.toString())).build();
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            if (repo != null)
+            {
+                final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
+                final IRI type = repo.getStorage().getSubjectType(iri);
+                if (type != null)
+                    return Response.ok(new ResultValue(type.toString())).build();
+                else
+                    return Response.ok(new ResultValue("unknown")).build();
+            }
             else
-                return Response.ok(new ResultValue("unknown")).build();
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
         } catch (StorageException e) {
             return Response.serverError()
                     .type(MediaType.APPLICATION_JSON)
@@ -157,11 +224,22 @@ public class RepositoryResource
     public Response describeSubject(@PathParam("iri") String iriValue)
     {
         try {
-            final IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
-            final String query = "SELECT ?p ?v WHERE { <" + iri.toString() + "> ?p ?v }";
-            final List<BindingSet> bindings = storage.getStorage().executeSafeTupleQuery(query);
-            final SubjectDescriptionResult result = new SubjectDescriptionResult(bindings);
-            return Response.ok(new ResultValue(result)).build();
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            if (repo != null)
+            {
+                final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
+                final String query = "SELECT ?p ?v WHERE { <" + iri.toString() + "> ?p ?v }";
+                final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
+                final SubjectDescriptionResult result = new SubjectDescriptionResult(bindings);
+                return Response.ok(new ResultValue(result)).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
         } catch (StorageException e) {
             return Response.serverError()
                     .type(MediaType.APPLICATION_JSON)
@@ -179,19 +257,31 @@ public class RepositoryResource
         if (quad.isOk())
         {
             try {
-                final IRI sIri = storage.getArtifactRepository().getIriDecoder().decodeIri(quad.getS());
-                final IRI pIri = storage.getArtifactRepository().getIriDecoder().decodeIri(quad.getP());
-                final IRI aIri = storage.getArtifactRepository().getIriDecoder().decodeIri(quad.getArtifact());
-                if (quad.getO() != null)
+                final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+                if (repo != null)
                 {
-                    final IRI oIri = storage.getArtifactRepository().getIriDecoder().decodeIri(quad.getO());
-                    storage.getStorage().add(sIri, pIri, oIri, aIri);
+                    final IRIDecoder dec = repo.getIriDecoder();
+                    final IRI sIri = dec.decodeIri(quad.getS());
+                    final IRI pIri = dec.decodeIri(quad.getP());
+                    final IRI aIri = dec.decodeIri(quad.getArtifact());
+                    if (quad.getO() != null)
+                    {
+                        final IRI oIri = dec.decodeIri(quad.getO());
+                        repo.getStorage().add(sIri, pIri, oIri, aIri);
+                    }
+                    else if (quad.getValue() != null)
+                    {
+                        repo.getStorage().addValue(sIri, pIri, quad.getValue(), aIri);
+                    }
+                    return Response.ok(new ResultValue(null)).build();
                 }
-                else if (quad.getValue() != null)
+                else
                 {
-                    storage.getStorage().addValue(sIri, pIri, quad.getValue(), aIri);
+                    return Response.status(Status.NOT_FOUND)
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                            .build();
                 }
-                return Response.ok(new ResultValue(null)).build();
             } catch (StorageException e) {
                 return Response.serverError()
                         .type(MediaType.APPLICATION_JSON)
@@ -204,6 +294,51 @@ public class RepositoryResource
             return Response.serverError().entity(new ResultErrorMessage("error", "Must provide {s, p, (o | value), artifact}")).build();
         }
         
+    }
+    
+    @GET
+    @Path("/checkRepo")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkRepo()
+    {
+        final RDFStorage rdfst = storage.getStorage(userId, repoId);
+        if (rdfst != null)
+        {
+            Value val = rdfst.getPropertyValue(BOX.Page, RDF.TYPE);
+            if (val != null)
+                return Response.ok(new ResultValue("Repository metadata is present.")).build();
+            else
+                return Response.ok(new ResultErrorMessage("Repository has not been initialized. Use /initRepo to fix this.")).build();
+        }
+        else
+        {
+            return Response.status(Status.NOT_FOUND)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                    .build();
+        }
+    }
+    
+    @GET
+    @Path("/initRepo")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response initRepo()
+    {
+        final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+        if (repo != null)
+        {
+            if (repo.isInitialized())
+                return Response.ok(new ResultValue("ok")).build();
+            else
+                return Response.serverError().entity("error during repository initialization").build();
+        }
+        else
+        {
+            return Response.status(Status.NOT_FOUND)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                    .build();
+        }
     }
     
 }

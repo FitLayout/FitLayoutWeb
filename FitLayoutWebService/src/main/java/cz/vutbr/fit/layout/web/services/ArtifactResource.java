@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -54,20 +53,18 @@ import cz.vutbr.fit.layout.web.ejb.StorageService;
  * 
  * @author burgetr
  */
-@Path("artifact")
+@Path("r/{repoId}/artifact")
 public class ArtifactResource
 {
     @Inject
     private StorageService storage;
-    private ServiceManager sm;
+    
+    @PathParam("repoId")
+    private String repoId;
+    
+    private String userId;
     
     
-    @PostConstruct
-    public void init()
-    {
-        sm = FLConfig.createServiceManager(storage.getArtifactRepository());
-    }
-
     /**
      * Retrieves information about a given artifact without its contents.
      * @param mimeType
@@ -77,35 +74,46 @@ public class ArtifactResource
     private Response getArtifactInfo(String iriValue, String mimeType)
     {
         try {
-            Collection<IRI> list;
-            if (iriValue == null)
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            if (repo != null)
             {
-                list = storage.getArtifactRepository().getArtifactIRIs();
-            }
-            else
-            {
-                IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
-                list = new ArrayList<>(1);
-                list.add(iri);
-            }
-            Model graph = getArtifactModel(storage.getArtifactRepository(), list);
-            if (!graph.isEmpty())
-            {
-                StreamingOutput stream = new StreamingOutput() {
-                    @Override
-                    public void write(OutputStream os) throws IOException, WebApplicationException {
-                        Serialization.modelToStream(graph, os, mimeType);
-                    }
-                };
-                return Response.ok(stream)
-                        .type(mimeType)
-                        .build();
+                Collection<IRI> list;
+                if (iriValue == null)
+                {
+                    list = repo.getArtifactIRIs();
+                }
+                else
+                {
+                    IRI iri = repo.getIriDecoder().decodeIri(iriValue);
+                    list = new ArrayList<>(1);
+                    list.add(iri);
+                }
+                Model graph = getArtifactModel(repo, list);
+                if (!graph.isEmpty())
+                {
+                    StreamingOutput stream = new StreamingOutput() {
+                        @Override
+                        public void write(OutputStream os) throws IOException, WebApplicationException {
+                            Serialization.modelToStream(graph, os, mimeType);
+                        }
+                    };
+                    return Response.ok(stream)
+                            .type(mimeType)
+                            .build();
+                }
+                else
+                {
+                    return Response.status(Status.NOT_FOUND)
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT))
+                            .build();
+                }
             }
             else
             {
                 return Response.status(Status.NOT_FOUND)
                         .type(MediaType.APPLICATION_JSON)
-                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT))
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
                         .build();
             }
         } catch (RepositoryException | ServiceException e) {
@@ -138,9 +146,20 @@ public class ArtifactResource
     public Response listArtifacts()
     {
         try {
-            Collection<IRI> list = storage.getArtifactRepository().getArtifactIRIs();
-            List<String> stringList = list.stream().map(Object::toString).collect(Collectors.toList());
-            return Response.ok(new ResultValue(stringList)).build();
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            if (repo != null)
+            {
+                Collection<IRI> list = repo.getArtifactIRIs();
+                List<String> stringList = list.stream().map(Object::toString).collect(Collectors.toList());
+                return Response.ok(new ResultValue(stringList)).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
         } catch (RepositoryException | ServiceException e) {
             return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
         }
@@ -152,62 +171,97 @@ public class ArtifactResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response create(ServiceParams params)
     {
-        ParametrizedOperation op = null;
-        if (params.getServiceId() != null)
-            op = sm.findParmetrizedService(params.getServiceId());
-        if (op != null)
-        {
-            try {
-                checkStorageReady();
-                
-                //read the source artifact
-                Artifact sourceArtifact = null;
-                IRI sourceArtifactIri = null;
-                if (params.getParentIri() != null)
-                    sourceArtifactIri = storage.getArtifactRepository().getIriDecoder().decodeIri(params.getParentIri());
-                if (sourceArtifactIri != null)
-                    sourceArtifact = storage.getArtifactRepository().getArtifact(sourceArtifactIri); 
-                
-                //invoke the service
-                ServiceManager.setServiceParams(op, params.getParams());
-                Artifact newArtifact = ((ArtifactService) op).process(sourceArtifact);
-                storage.getArtifactRepository().addArtifact(newArtifact);
-                return Response.ok(new ResultValue(newArtifact.getIri().toString())).build();
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-                return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
-            } catch (RepositoryException | ServiceException e) {
-                return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+        try {
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            if (repo != null)
+            {
+                ServiceManager sm = FLConfig.createServiceManager(repo);
+                ParametrizedOperation op = null;
+                if (params.getServiceId() != null)
+                    op = sm.findParmetrizedService(params.getServiceId());
+                if (op != null)
+                {
+                    try {
+                        checkStorageReady();
+                        
+                        //read the source artifact
+                        Artifact sourceArtifact = null;
+                        IRI sourceArtifactIri = null;
+                        if (params.getParentIri() != null)
+                            sourceArtifactIri = repo.getIriDecoder().decodeIri(params.getParentIri());
+                        if (sourceArtifactIri != null)
+                            sourceArtifact = repo.getArtifact(sourceArtifactIri); 
+                        
+                        //invoke the service
+                        ServiceManager.setServiceParams(op, params.getParams());
+                        Artifact newArtifact = ((ArtifactService) op).process(sourceArtifact);
+                        repo.addArtifact(newArtifact);
+                        return Response.ok(new ResultValue(newArtifact.getIri().toString())).build();
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+                        return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+                    } catch (RepositoryException | ServiceException e) {
+                        return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+                    }
+                }
+                else
+                {
+                    return Response.status(Status.NOT_FOUND).entity(new ResultErrorMessage(ResultErrorMessage.E_NO_SERVICE)).build();
+                }
             }
-        }
-        else
-        {
-            return Response.status(Status.NOT_FOUND).entity(new ResultErrorMessage(ResultErrorMessage.E_NO_SERVICE)).build();
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
+        } catch (IllegalArgumentException e) {
+            return Response.status(Status.BAD_REQUEST)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        } catch (RepositoryException | ServiceException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
         }
     }
 
     private Response getArtifact(String iriValue, String mimeType)
     {
         try {
-            IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
-            Model graph = storage.getArtifactRepository().getArtifactModel(iri);
-            if (!graph.isEmpty())
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            if (repo != null)
             {
-                StreamingOutput stream = new StreamingOutput() {
-                    @Override
-                    public void write(OutputStream os) throws IOException, WebApplicationException {
-                        Serialization.modelToStream(graph, os, mimeType);
-                    }
-                };
-                return Response.ok(stream)
-                        .type(mimeType)
-                        .build();
+                IRI iri = repo.getIriDecoder().decodeIri(iriValue);
+                Model graph = repo.getArtifactModel(iri);
+                if (!graph.isEmpty())
+                {
+                    StreamingOutput stream = new StreamingOutput() {
+                        @Override
+                        public void write(OutputStream os) throws IOException, WebApplicationException {
+                            Serialization.modelToStream(graph, os, mimeType);
+                        }
+                    };
+                    return Response.ok(stream)
+                            .type(mimeType)
+                            .build();
+                }
+                else
+                {
+                    return Response.status(Status.NOT_FOUND)
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + ": " + iri.toString()))
+                            .build();
+                }
             }
             else
             {
                 return Response.status(Status.NOT_FOUND)
                         .type(MediaType.APPLICATION_JSON)
-                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + ": " + iri.toString()))
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
                         .build();
             }
         } catch (IllegalArgumentException e) {
@@ -245,9 +299,20 @@ public class ArtifactResource
     public Response removeArtifact(@PathParam("iri") String iriValue)
     {
         try {
-            IRI iri = storage.getArtifactRepository().getIriDecoder().decodeIri(iriValue);
-            storage.getArtifactRepository().removeArtifact(iri);
-            return Response.ok(new ResultValue(iri.toString())).build();
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            if (repo != null)
+            {
+                IRI iri = repo.getIriDecoder().decodeIri(iriValue);
+                repo.removeArtifact(iri);
+                return Response.ok(new ResultValue(iri.toString())).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
         } catch (IllegalArgumentException e) {
             return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
         } catch (RepositoryException | ServiceException e) {
@@ -261,8 +326,19 @@ public class ArtifactResource
     public Response removeAll()
     {
         try {
-            storage.getArtifactRepository().clear();
-            return Response.ok(new ResultValue(null)).build();
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            if (repo != null)
+            {
+                repo.clear();
+                return Response.ok(new ResultValue(null)).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
         } catch (IllegalArgumentException e) {
             return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
         } catch (RepositoryException | ServiceException e) {

@@ -8,7 +8,7 @@ import javax.ws.rs.core.Application;
  *
  * @author burgetr
  */
-@ApplicationPath("service")
+@ApplicationPath("api")
 public class JAXRSConfiguration extends Application
 {
 
