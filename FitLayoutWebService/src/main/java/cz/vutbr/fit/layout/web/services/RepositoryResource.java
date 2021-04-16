@@ -5,8 +5,10 @@
  */
 package cz.vutbr.fit.layout.web.services;
 
+import java.security.Principal;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -37,6 +39,7 @@ import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.SelectQueryResult;
 import cz.vutbr.fit.layout.web.data.SubjectDescriptionResult;
+import cz.vutbr.fit.layout.web.data.UserInfo;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 
 /**
@@ -48,12 +51,20 @@ import cz.vutbr.fit.layout.web.ejb.StorageService;
 public class RepositoryResource
 {
     @Inject
+    private Principal principal;
+    @Inject
     private StorageService storage;
 
     @PathParam("repoId")
     private String repoId;
     
-    private String userId;
+    private UserInfo user;
+    
+    @PostConstruct
+    public void init()
+    {
+        user = new UserInfo(principal);
+    }
     
     @POST
     @Path("/query")
@@ -62,7 +73,7 @@ public class RepositoryResource
     public Response repositoryQuery(String query)
     {
         try {
-            final RDFStorage rdfst = storage.getStorage(userId, repoId);
+            final RDFStorage rdfst = storage.getStorage(user.getUserId(), repoId);
             if (rdfst != null)
             {
                 final List<BindingSet> bindings = rdfst.executeSafeTupleQuery(query);
@@ -90,7 +101,7 @@ public class RepositoryResource
     public Response querySubject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
         try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
             if (repo != null)
             {
                 final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
@@ -120,7 +131,7 @@ public class RepositoryResource
     public Response queryObject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
         try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
             if (repo != null)
             {
                 final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
@@ -150,7 +161,7 @@ public class RepositoryResource
     public Response getSubjectValue(@PathParam("subjIri") String subjIriValue, @PathParam("propertyIri") String propertyIriValue)
     {
         try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
             if (repo != null)
             {
                 final IRI subjIri = repo.getIriDecoder().decodeIri(subjIriValue);
@@ -193,7 +204,7 @@ public class RepositoryResource
     public Response getSubjectType(@PathParam("iri") String iriValue)
     {
         try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
             if (repo != null)
             {
                 final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
@@ -224,7 +235,7 @@ public class RepositoryResource
     public Response describeSubject(@PathParam("iri") String iriValue)
     {
         try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+            final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
             if (repo != null)
             {
                 final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
@@ -257,7 +268,7 @@ public class RepositoryResource
         if (quad.isOk())
         {
             try {
-                final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+                final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
                 if (repo != null)
                 {
                     final IRIDecoder dec = repo.getIriDecoder();
@@ -301,7 +312,7 @@ public class RepositoryResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRepo()
     {
-        final RDFStorage rdfst = storage.getStorage(userId, repoId);
+        final RDFStorage rdfst = storage.getStorage(user.getUserId(), repoId);
         if (rdfst != null)
         {
             Value val = rdfst.getPropertyValue(BOX.Page, RDF.TYPE);
@@ -324,7 +335,7 @@ public class RepositoryResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response initRepo()
     {
-        final RDFArtifactRepository repo = storage.getArtifactRepository(userId, repoId);
+        final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
         if (repo != null)
         {
             if (repo.isInitialized())

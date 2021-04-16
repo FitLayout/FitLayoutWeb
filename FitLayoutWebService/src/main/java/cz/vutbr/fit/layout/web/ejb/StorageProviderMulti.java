@@ -28,7 +28,7 @@ import cz.vutbr.fit.layout.web.data.StorageStatus;
 public class StorageProviderMulti implements StorageProvider
 {
     private static Logger log = LoggerFactory.getLogger(StorageProviderMulti.class);
-
+    
     private String configPath;
     private RepositoryManager manager;
 

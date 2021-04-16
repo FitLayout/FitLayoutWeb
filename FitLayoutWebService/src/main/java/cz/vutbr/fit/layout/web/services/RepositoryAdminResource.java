@@ -5,6 +5,9 @@
  */
 package cz.vutbr.fit.layout.web.services;
 
+import java.security.Principal;
+
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -20,6 +23,7 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
+import cz.vutbr.fit.layout.web.data.UserInfo;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 
 /**
@@ -30,9 +34,17 @@ import cz.vutbr.fit.layout.web.ejb.StorageService;
 public class RepositoryAdminResource
 {
     @Inject
+    private Principal principal;
+    @Inject
     private StorageService storage;
-    private String userId;
+    private UserInfo user;
 
+    @PostConstruct
+    public void init()
+    {
+        user = new UserInfo(principal);
+    }
+    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response listRepositories()
@@ -48,7 +60,7 @@ public class RepositoryAdminResource
         if (data != null && data.id != null)
         {
             try {
-                storage.createRepository(userId, data);
+                storage.createRepository(user.getUserId(), data);
                 return Response.ok(new ResultValue(null)).build();
             } catch (RepositoryException e) {
                 return Response.serverError()
