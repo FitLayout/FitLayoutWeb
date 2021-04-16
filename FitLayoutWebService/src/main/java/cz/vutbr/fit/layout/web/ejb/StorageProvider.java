@@ -11,6 +11,7 @@ import java.util.List;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.RDFStorage;
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
+import cz.vutbr.fit.layout.web.data.StorageStatus;
 
 /**
  * An interface of a provider that is able to create and open RDF repositories for users.
@@ -22,12 +23,14 @@ public interface StorageProvider
 
     public boolean isReady();
     
-    List<RepositoryInfo> getRepositoryList();
+    public StorageStatus getStorageStatus();
+    
+    public List<RepositoryInfo> getRepositoryList();
 
-    RDFStorage getStorage(String userId, String repoId);
+    public RDFStorage getStorage(String userId, String repoId);
 
-    RDFArtifactRepository getArtifactRepository(String userId, String repoId);
+    public RDFArtifactRepository getArtifactRepository(String userId, String repoId);
 
-    void close();
+    public void close();
 
 }

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.RDFStorage;
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
+import cz.vutbr.fit.layout.web.data.StorageStatus;
 
 /**
  * Storage provider implementation for a multi storage using a repository manager.
@@ -48,6 +49,12 @@ public class StorageProviderMulti implements StorageProvider
         return (manager != null && manager.isInitialized());
     }
     
+    @Override
+    public StorageStatus getStorageStatus()
+    {
+        return new StorageStatus(true, false, 1, 0);
+    }
+
     @Override
     public List<RepositoryInfo> getRepositoryList()
     {

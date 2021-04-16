@@ -32,4 +32,12 @@ public class RepositoryAdminResource
         return Response.ok(new ResultValue(storage.getRepositories())).build();
     }
     
+    @GET
+    @Path("/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getStatus()
+    {
+        return Response.ok(new ResultValue(storage.getStatus())).build();
+    }
+    
 }
