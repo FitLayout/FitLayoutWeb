@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,6 +99,12 @@ public class StorageService
         return provider.getArtifactRepository(userId, repoId);
     }
 
+    public void createRepository(String userId, RepositoryInfo data)
+        throws RepositoryException
+    {
+        provider.createRepository(userId, data);
+    }
+    
     public void closeStorage()
     {
         provider.close();

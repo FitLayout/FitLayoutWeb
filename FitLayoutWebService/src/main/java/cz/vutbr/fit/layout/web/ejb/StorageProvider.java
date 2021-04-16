@@ -8,6 +8,8 @@ package cz.vutbr.fit.layout.web.ejb;
 
 import java.util.List;
 
+import org.eclipse.rdf4j.repository.RepositoryException;
+
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.RDFStorage;
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
@@ -30,6 +32,9 @@ public interface StorageProvider
     public RDFStorage getStorage(String userId, String repoId);
 
     public RDFArtifactRepository getArtifactRepository(String userId, String repoId);
+    
+    public void createRepository(String userId, RepositoryInfo info)
+        throws RepositoryException;
 
     public void close();
 

@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.manager.LocalRepositoryManager;
 import org.eclipse.rdf4j.repository.manager.RepositoryManager;
 import org.slf4j.Logger;
@@ -82,6 +83,13 @@ public class StorageProviderMulti implements StorageProvider
     {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public void createRepository(String userId, RepositoryInfo info)
+            throws RepositoryException
+    {
+        // TODO Auto-generated method stub
     }
 
     @Override
