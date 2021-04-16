@@ -49,7 +49,7 @@ public class RepositoryAdminResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response listRepositories()
     {
-        return Response.ok(new ResultValue(storage.getRepositories())).build();
+        return Response.ok(new ResultValue(storage.getRepositories(user.getUserId()))).build();
     }
     
     @POST
@@ -83,7 +83,7 @@ public class RepositoryAdminResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStatus()
     {
-        return Response.ok(new ResultValue(storage.getStatus())).build();
+        return Response.ok(new ResultValue(storage.getStatus(user.getUserId()))).build();
     }
     
 }

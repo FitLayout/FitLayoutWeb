@@ -25,9 +25,9 @@ public interface StorageProvider
 
     public boolean isReady();
     
-    public StorageStatus getStorageStatus();
+    public StorageStatus getStorageStatus(String userId);
     
-    public List<RepositoryInfo> getRepositoryList();
+    public List<RepositoryInfo> getRepositoryList(String userId);
 
     public RDFStorage getStorage(String userId, String repoId);
 

@@ -59,13 +59,13 @@ public class StorageProviderSingle implements StorageProvider
     }
     
     @Override
-    public StorageStatus getStorageStatus()
+    public StorageStatus getStorageStatus(String userId)
     {
         return new StorageStatus(true, false, 1, 0);
     }
 
     @Override
-    public List<RepositoryInfo> getRepositoryList()
+    public List<RepositoryInfo> getRepositoryList(String userId)
     {
         final RepositoryInfo info = new RepositoryInfo(DEFAULT_REPOSITORY, "The default preconfigured repository");
         return List.of(info);

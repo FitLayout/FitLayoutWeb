@@ -79,14 +79,14 @@ public class StorageService
         return provider.isReady();
     }
     
-    public StorageStatus getStatus()
+    public StorageStatus getStatus(String userId)
     {
-        return provider.getStorageStatus();
+        return provider.getStorageStatus(userId);
     }
     
-    public List<RepositoryInfo> getRepositories()
+    public List<RepositoryInfo> getRepositories(String userId)
     {
-        return provider.getRepositoryList();
+        return provider.getRepositoryList(userId);
     }
     
     public RDFStorage getStorage(String userId, String repoId)
