@@ -99,25 +99,15 @@ public class ArtifactResource
                     list.add(iri);
                 }
                 Model graph = getArtifactModel(repo, list);
-                if (!graph.isEmpty())
-                {
-                    StreamingOutput stream = new StreamingOutput() {
-                        @Override
-                        public void write(OutputStream os) throws IOException, WebApplicationException {
-                            Serialization.modelToStream(graph, os, mimeType);
-                        }
-                    };
-                    return Response.ok(stream)
-                            .type(mimeType)
-                            .build();
-                }
-                else
-                {
-                    return Response.status(Status.NOT_FOUND)
-                            .type(MediaType.APPLICATION_JSON)
-                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT))
-                            .build();
-                }
+                StreamingOutput stream = new StreamingOutput() {
+                    @Override
+                    public void write(OutputStream os) throws IOException, WebApplicationException {
+                        Serialization.modelToStream(graph, os, mimeType);
+                    }
+                };
+                return Response.ok(stream)
+                        .type(mimeType)
+                        .build();
             }
             else
             {
