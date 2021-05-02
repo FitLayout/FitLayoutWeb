@@ -5,15 +5,13 @@
  */
 package cz.vutbr.fit.layout.web.services;
 
-import java.security.Principal;
-
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
 import cz.vutbr.fit.layout.web.data.ResultValue;
-import cz.vutbr.fit.layout.web.data.UserInfo;
+import cz.vutbr.fit.layout.web.ejb.UserService;
 
 /**
  * 
@@ -23,14 +21,13 @@ import cz.vutbr.fit.layout.web.data.UserInfo;
 public class AuthResource
 {
     @Inject
-    private Principal principal;
+    private UserService userService;
     
     @GET
     @Path("userInfo")
     public Response getUserInfo()
     {
-        UserInfo info = new UserInfo(principal);
-        return Response.ok(new ResultValue(info)).build();
+        return Response.ok(new ResultValue(userService.getUser())).build();
     }
     
 }

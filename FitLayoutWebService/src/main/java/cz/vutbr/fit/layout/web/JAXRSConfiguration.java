@@ -13,7 +13,7 @@ import org.eclipse.microprofile.auth.LoginConfig;
  */
 @ApplicationPath("api")
 @LoginConfig(authMethod = "MP-JWT")
-@DeclareRoles({ "user" })
+@DeclareRoles({ "user", "admin" })
 public class JAXRSConfiguration extends Application
 {
 

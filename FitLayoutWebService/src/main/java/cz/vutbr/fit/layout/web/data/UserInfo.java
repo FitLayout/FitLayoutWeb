@@ -13,6 +13,10 @@ import java.security.Principal;
  */
 public class UserInfo
 {
+    /**
+     * The user ID used for an unathorized user. This is not used when the REST endpoind is
+     * disabled for anonymous sers.
+     */
     public static String GUEST_USER = "guest";
 
     public String userId;
@@ -26,16 +30,17 @@ public class UserInfo
     {
         if (principal == null || principal.getName() == null || "ANONYMOUS".equals(principal.getName()))
         {
+            // unauthorized users
             setUserId(GUEST_USER);
             setAnonymous(true);
         }
         else
         {
+            // authorized users
             setUserId(principal.getName());
             setAnonymous(false);
         }
     }
-    
     
     public String getUserId()
     {
