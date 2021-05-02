@@ -36,15 +36,15 @@ public class StorageService
     String configStorage;
 
     @Inject
-    @ConfigProperty(name = "fitlayout.rdf.server")
+    @ConfigProperty(name = "fitlayout.rdf.server", defaultValue = "http://localhost:8080/rdf4j-server")
     String configServer;
 
     @Inject
-    @ConfigProperty(name = "fitlayout.rdf.repository")
+    @ConfigProperty(name = "fitlayout.rdf.repository", defaultValue = "fitlayout")
     String configRepository;
 
     @Inject
-    @ConfigProperty(name = "fitlayout.rdf.path")
+    @ConfigProperty(name = "fitlayout.rdf.path", defaultValue = "$HOME/.fitlayout/storage")
     String configPath;
     
     private boolean singleMode;
@@ -73,6 +73,11 @@ public class StorageService
     }
     
     //===============================================================================================
+    
+    public boolean isSingleMode()
+    {
+        return singleMode;
+    }
     
     public boolean isReady()
     {
