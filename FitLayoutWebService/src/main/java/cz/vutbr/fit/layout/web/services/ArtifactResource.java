@@ -7,13 +7,11 @@ package cz.vutbr.fit.layout.web.services;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -50,8 +48,8 @@ import cz.vutbr.fit.layout.web.FLConfig;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.ServiceParams;
-import cz.vutbr.fit.layout.web.data.UserInfo;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
+import cz.vutbr.fit.layout.web.ejb.UserService;
 
 /**
  * 
@@ -61,20 +59,12 @@ import cz.vutbr.fit.layout.web.ejb.StorageService;
 public class ArtifactResource
 {
     @Inject
-    private Principal principal;
+    private UserService userService;
     @Inject
     private StorageService storage;
     
     @PathParam("repoId")
     private String repoId;
-    
-    private UserInfo user;
-    
-    @PostConstruct
-    public void init()
-    {
-        user = new UserInfo(principal);
-    }
     
     /**
      * Retrieves information about a given artifact without its contents.
@@ -85,7 +75,7 @@ public class ArtifactResource
     private Response getArtifactInfo(String iriValue, String mimeType)
     {
         try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser().getUserId(), repoId);
             if (repo != null)
             {
                 Collection<IRI> list;
@@ -150,7 +140,7 @@ public class ArtifactResource
     public Response listArtifacts()
     {
         try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser().getUserId(), repoId);
             if (repo != null)
             {
                 Collection<IRI> list = repo.getArtifactIRIs();
@@ -177,7 +167,7 @@ public class ArtifactResource
     public Response create(ServiceParams params)
     {
         try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser().getUserId(), repoId);
             if (repo != null)
             {
                 ServiceManager sm = FLConfig.createServiceManager(repo);
@@ -237,7 +227,7 @@ public class ArtifactResource
     private Response getArtifact(String iriValue, String mimeType)
     {
         try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser().getUserId(), repoId);
             if (repo != null)
             {
                 IRI iri = repo.getIriDecoder().decodeIri(iriValue);
@@ -307,7 +297,7 @@ public class ArtifactResource
     public Response removeArtifact(@PathParam("iri") String iriValue)
     {
         try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser().getUserId(), repoId);
             if (repo != null)
             {
                 IRI iri = repo.getIriDecoder().decodeIri(iriValue);
@@ -335,7 +325,7 @@ public class ArtifactResource
     public Response removeAll()
     {
         try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser().getUserId(), repoId);
             if (repo != null)
             {
                 repo.clear();
