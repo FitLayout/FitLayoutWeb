@@ -47,6 +47,10 @@ public class StorageService
     @ConfigProperty(name = "fitlayout.rdf.path", defaultValue = "$HOME/.fitlayout/storage")
     String configPath;
     
+    @Inject
+    @ConfigProperty(name = "fitlayout.rdf.autoCreateDefault", defaultValue = "false")
+    boolean autoCreateDefault;
+    
     private boolean singleMode;
     private StorageProvider provider;
     
@@ -61,8 +65,9 @@ public class StorageService
         }
         else
         {
-            log.info("Initializing multi mode repository");
+            log.info("Initializing multi mode repository in {}", configPath);
             provider = new StorageProviderMulti(configPath);
+            ((StorageProviderMulti) provider).setAutoCreateDefault(autoCreateDefault);
         }
     }
     

@@ -34,21 +34,36 @@ public class StorageProviderMulti implements StorageProvider
 {
     private static Logger log = LoggerFactory.getLogger(StorageProviderMulti.class);
     
+    private static final String DEFAULT_REPOSITORY = "default";
+    
     private static final String SEP = "-";
     private static final int REPOSITORY_LIMIT = 4;
     
+    private boolean autoCreateDefault;
     private String configPath;
     private RepositoryManager manager;
 
     public StorageProviderMulti(String configPath)
     {
         this.configPath = configPath;
+        autoCreateDefault = false;
         init();
+    }
+
+    public boolean isAutoCreateDefault()
+    {
+        return autoCreateDefault;
+    }
+
+    public void setAutoCreateDefault(boolean autoCreateDefault)
+    {
+        this.autoCreateDefault = autoCreateDefault;
     }
 
     private void init()
     {
-        File baseDir = new File(configPath);
+        final String path = configPath.replace("$HOME", System.getProperty("user.home"));
+        final File baseDir = new File(path);
         manager = new LocalRepositoryManager(baseDir);
         manager.init();
     }
@@ -61,6 +76,7 @@ public class StorageProviderMulti implements StorageProvider
     @Override
     public StorageStatus getStorageStatus(String userId)
     {
+        checkDefaultRepository(userId);
         List<RepositoryInfo> repos = getRepositoryList(userId);
         int cnt = repos.size();
         return new StorageStatus(false, cnt < REPOSITORY_LIMIT, cnt, REPOSITORY_LIMIT - cnt);
@@ -71,18 +87,8 @@ public class StorageProviderMulti implements StorageProvider
     {
         if (isReady())
         {
-            final var infos = manager.getAllRepositoryInfos();
-            final List<RepositoryInfo> ret = new ArrayList<>(infos.size());
-            for (var info : infos)
-            {
-                log.debug("Found: {}", info.getId());
-                if (info.getId().startsWith(userId + SEP))
-                {
-                    String id = info.getId().substring(userId.length() + 1);
-                    ret.add(new RepositoryInfo(id, info.getDescription()));
-                }
-            }
-            return ret;
+            checkDefaultRepository(userId);
+            return findUserRepositories(userId);
         }
         else
             return List.of();
@@ -116,9 +122,9 @@ public class StorageProviderMulti implements StorageProvider
         {
             if (UserInfo.GUEST_USER.equals(userId))
             {
-                if ("default".equals(info.getId()))
+                if (DEFAULT_REPOSITORY.equals(info.getId()))
                 {
-                    createRepositoryWithId(userId + SEP + "default", info.getDescription());
+                    createRepositoryWithId(userId + SEP + DEFAULT_REPOSITORY, info.getDescription());
                 }
                 else
                     throw new RepositoryException("Repository creation not allowed");
@@ -150,6 +156,36 @@ public class StorageProviderMulti implements StorageProvider
         manager.addRepositoryConfig(conf);
         Repository repo = manager.getRepository(id);
         log.info("Created {}", repo);
+    }
+    
+    private List<RepositoryInfo> findUserRepositories(String userId)
+    {
+        final var infos = manager.getAllRepositoryInfos();
+        final List<RepositoryInfo> ret = new ArrayList<>(infos.size());
+        for (var info : infos)
+        {
+            log.debug("Found: {}", info.getId());
+            if (info.getId().startsWith(userId + SEP))
+            {
+                String id = info.getId().substring(userId.length() + 1);
+                ret.add(new RepositoryInfo(id, info.getDescription()));
+            }
+        }
+        return ret;
+    }
+
+    private void checkDefaultRepository(String userId)
+            throws RepositoryException
+    {
+        if (autoCreateDefault)
+        {
+            final var infos = findUserRepositories(userId);
+            if (infos.size() == 0)
+            {
+                RepositoryInfo defaultInfo = new RepositoryInfo(DEFAULT_REPOSITORY, "Default repository");
+                createRepository(userId, defaultInfo);
+            }
+        }
     }
     
     @Override
