@@ -8,6 +8,7 @@ package cz.vutbr.fit.layout.web.services;
 import java.security.Principal;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -47,6 +48,7 @@ public class RepositoryAdminResource
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response listRepositories()
     {
         return Response.ok(new ResultValue(storage.getRepositories(user.getUserId()))).build();
@@ -55,6 +57,7 @@ public class RepositoryAdminResource
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response createRepository(RepositoryInfo data)
     {
         if (data != null && data.id != null)
@@ -81,6 +84,7 @@ public class RepositoryAdminResource
     @GET
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response getStatus()
     {
         return Response.ok(new ResultValue(storage.getStatus(user.getUserId()))).build();

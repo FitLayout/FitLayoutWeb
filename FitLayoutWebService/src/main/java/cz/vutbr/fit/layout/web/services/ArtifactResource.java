@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -127,6 +128,7 @@ public class ArtifactResource
     @GET
     @Path("/")
     @Produces(Serialization.JSONLD)
+    @PermitAll
     public Response getArtifactsInfoJSON()
     {
         return getArtifactInfo(null, Serialization.JSONLD);
@@ -135,6 +137,7 @@ public class ArtifactResource
     @GET
     @Path("/")
     @Produces(Serialization.TURTLE)
+    @PermitAll
     public Response getArtifactsInfoTurtle()
     {
         return getArtifactInfo(null, Serialization.TURTLE);
@@ -143,6 +146,7 @@ public class ArtifactResource
     @GET
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response listArtifacts()
     {
         try {
@@ -169,6 +173,7 @@ public class ArtifactResource
     @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response create(ServiceParams params)
     {
         try {
@@ -280,6 +285,7 @@ public class ArtifactResource
     @GET
     @Path("/item/{iri}")
     @Produces(Serialization.JSONLD)
+    @PermitAll
     public Response getArtifactJSON(@PathParam("iri") String iriValue)
     {
         return getArtifact(iriValue, Serialization.JSONLD);
@@ -288,6 +294,7 @@ public class ArtifactResource
     @GET
     @Path("/item/{iri}")
     @Produces(Serialization.TURTLE)
+    @PermitAll
     public Response getArtifactTurtle(@PathParam("iri") String iriValue)
     {
         return getArtifact(iriValue, Serialization.TURTLE);
@@ -296,6 +303,7 @@ public class ArtifactResource
     @DELETE
     @Path("/item/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response removeArtifact(@PathParam("iri") String iriValue)
     {
         try {
@@ -323,6 +331,7 @@ public class ArtifactResource
     @DELETE
     @Path("/clear")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response removeAll()
     {
         try {
@@ -349,6 +358,7 @@ public class ArtifactResource
     @GET
     @Path("/info/{iri}")
     @Produces(Serialization.JSONLD)
+    @PermitAll
     public Response getArtifactInfoJSON(@PathParam("iri") String iriValue)
     {
         return getArtifactInfo(iriValue, Serialization.JSONLD);
@@ -357,6 +367,7 @@ public class ArtifactResource
     @GET
     @Path("/info/{iri}")
     @Produces(Serialization.TURTLE)
+    @PermitAll
     public Response getArtifactInfoTurtle(@PathParam("iri") String iriValue)
     {
         return getArtifactInfo(iriValue, Serialization.TURTLE);

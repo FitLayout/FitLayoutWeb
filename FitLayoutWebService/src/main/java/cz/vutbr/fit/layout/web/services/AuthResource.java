@@ -5,6 +5,7 @@
  */
 package cz.vutbr.fit.layout.web.services;
 
+import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -25,6 +26,7 @@ public class AuthResource
     
     @GET
     @Path("userInfo")
+    @PermitAll
     public Response getUserInfo()
     {
         return Response.ok(new ResultValue(userService.getUser())).build();

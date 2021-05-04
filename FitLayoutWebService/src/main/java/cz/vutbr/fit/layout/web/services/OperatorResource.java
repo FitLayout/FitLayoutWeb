@@ -8,6 +8,7 @@ package cz.vutbr.fit.layout.web.services;
 import java.util.ArrayList;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.security.PermitAll;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -36,6 +37,7 @@ public class OperatorResource
     }
     
     @GET
+    @PermitAll
     public Response listOperators()
     {
         var ops = sm.findAreaTreeOperators();

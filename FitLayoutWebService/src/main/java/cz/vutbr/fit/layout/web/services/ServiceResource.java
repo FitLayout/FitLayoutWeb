@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.security.PermitAll;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -53,6 +54,7 @@ public class ServiceResource
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response getServiceList()
     {
         var services = sm.findArtifactSevices().values();
@@ -67,6 +69,7 @@ public class ServiceResource
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(Serialization.JSONLD)
+    @PermitAll
     public Response invokeJSON(ServiceParams params)
     {
         return invoke(params, Serialization.JSONLD);
@@ -75,6 +78,7 @@ public class ServiceResource
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(Serialization.TURTLE)
+    @PermitAll
     public Response invokeTurtle(ServiceParams params)
     {
         return invoke(params, Serialization.TURTLE);
@@ -85,6 +89,7 @@ public class ServiceResource
     @GET
     @Path("/config")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response getServiceConfig(@QueryParam("id") String serviceId)
     {
         ParametrizedOperation op = sm.findParmetrizedService(serviceId);
@@ -104,6 +109,7 @@ public class ServiceResource
     
     @GET
     @Path("/ping")
+    @PermitAll
     public String ping()
     {
         return "ok";

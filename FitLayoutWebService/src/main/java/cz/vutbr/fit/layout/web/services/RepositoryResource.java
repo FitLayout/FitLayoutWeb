@@ -9,6 +9,7 @@ import java.security.Principal;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -70,6 +71,7 @@ public class RepositoryResource
     @Path("/query")
     @Consumes(Serialization.SPARQL_QUERY)
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response repositoryQuery(String query)
     {
         try {
@@ -98,6 +100,7 @@ public class RepositoryResource
     @GET
     @Path("/subject/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response querySubject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
         try {
@@ -128,6 +131,7 @@ public class RepositoryResource
     @GET
     @Path("/object/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response queryObject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
         try {
@@ -158,6 +162,7 @@ public class RepositoryResource
     @GET
     @Path("/subject/{subjIri}/{propertyIri}")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response getSubjectValue(@PathParam("subjIri") String subjIriValue, @PathParam("propertyIri") String propertyIriValue)
     {
         try {
@@ -201,6 +206,7 @@ public class RepositoryResource
     @GET
     @Path("/type/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response getSubjectType(@PathParam("iri") String iriValue)
     {
         try {
@@ -232,6 +238,7 @@ public class RepositoryResource
     @GET
     @Path("/describe/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response describeSubject(@PathParam("iri") String iriValue)
     {
         try {
@@ -263,6 +270,7 @@ public class RepositoryResource
     @Path("/add")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response addQuadruple(QuadrupleData quad)
     {
         if (quad.isOk())
@@ -310,6 +318,7 @@ public class RepositoryResource
     @GET
     @Path("/checkRepo")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response checkRepo()
     {
         final RDFStorage rdfst = storage.getStorage(user.getUserId(), repoId);
@@ -333,6 +342,7 @@ public class RepositoryResource
     @GET
     @Path("/initRepo")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response initRepo()
     {
         final RDFArtifactRepository repo = storage.getArtifactRepository(user.getUserId(), repoId);
