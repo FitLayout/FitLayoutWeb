@@ -23,6 +23,7 @@ import cz.vutbr.fit.layout.segm.op.MultiLineOperator;
 import cz.vutbr.fit.layout.segm.op.SortByLinesOperator;
 import cz.vutbr.fit.layout.segm.op.SortByPositionOperator;
 import cz.vutbr.fit.layout.segm.op.SuperAreaOperator;
+import cz.vutbr.fit.layout.text.chunks.TextChunksProvider;
 import cz.vutbr.fit.layout.text.op.TagEntitiesOperator;
 import cz.vutbr.fit.layout.vips.VipsProvider;
 
@@ -70,6 +71,7 @@ public class FLConfig
         
         //text module
         addAreaTreeOperator(sm, new TagEntitiesOperator());
+        sm.addArtifactService(new TextChunksProvider());
         
         //use RDF storage as the artifact repository
         if (repo != null)
