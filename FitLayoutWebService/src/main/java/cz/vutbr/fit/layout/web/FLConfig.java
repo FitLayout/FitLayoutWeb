@@ -9,6 +9,7 @@ import cz.vutbr.fit.layout.api.AreaTreeOperator;
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.bcs.BCSProvider;
 import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
+import cz.vutbr.fit.layout.impl.DefaultTag;
 import cz.vutbr.fit.layout.provider.OperatorWrapperProvider;
 import cz.vutbr.fit.layout.provider.VisualBoxTreeProvider;
 import cz.vutbr.fit.layout.puppeteer.PuppeteerTreeProvider;
@@ -25,6 +26,11 @@ import cz.vutbr.fit.layout.segm.op.SortByPositionOperator;
 import cz.vutbr.fit.layout.segm.op.SuperAreaOperator;
 import cz.vutbr.fit.layout.text.chunks.TextChunksProvider;
 import cz.vutbr.fit.layout.text.op.TagEntitiesOperator;
+import cz.vutbr.fit.layout.text.tag.FixedTaggerConfig;
+import cz.vutbr.fit.layout.text.taggers.DateTagger;
+import cz.vutbr.fit.layout.text.taggers.LocationsTagger;
+import cz.vutbr.fit.layout.text.taggers.PersonsTagger;
+import cz.vutbr.fit.layout.text.taggers.TimeTagger;
 import cz.vutbr.fit.layout.vips.VipsProvider;
 
 /**
@@ -70,8 +76,15 @@ public class FLConfig
         addAreaTreeOperator(sm, new HomogeneousLeafOperator());
         
         //text module
-        addAreaTreeOperator(sm, new TagEntitiesOperator());
-        sm.addArtifactService(new TextChunksProvider());
+        FixedTaggerConfig tagConfig = new FixedTaggerConfig();
+        tagConfig.setTagger(new DefaultTag("FitLayout.TextTag", "date"), new DateTagger());
+        tagConfig.setTagger(new DefaultTag("FitLayout.TextTag", "time"), new TimeTagger());
+        tagConfig.setTagger(new DefaultTag("FitLayout.TextTag", "persons"), new PersonsTagger());
+        tagConfig.setTagger(new DefaultTag("FitLayout.TextTag", "locations"), new LocationsTagger());
+        sm.addArtifactService(new TextChunksProvider(tagConfig));
+        TagEntitiesOperator tagOp = new TagEntitiesOperator();
+        tagOp.addTaggers(tagConfig.getTaggers().values());
+        addAreaTreeOperator(sm, tagOp);
         
         //use RDF storage as the artifact repository
         if (repo != null)
