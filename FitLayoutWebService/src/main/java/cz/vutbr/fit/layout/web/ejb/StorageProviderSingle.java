@@ -72,6 +72,18 @@ public class StorageProviderSingle implements StorageProvider
     }
 
     @Override
+    public RepositoryInfo getRepositoryInfo(String userId, String repoId)
+    {
+        if (DEFAULT_REPOSITORY.equals(repoId))
+        {
+            final RepositoryInfo info = new RepositoryInfo(DEFAULT_REPOSITORY, "The default preconfigured repository");
+            return info;
+        }
+        else
+            return null;
+    }
+
+    @Override
     public RDFStorage getStorage(String userId, String repoId)
     {
         if (DEFAULT_REPOSITORY.equals(repoId))

@@ -73,6 +73,38 @@ public class RepositoryAdminResource
         }
     }
     
+    @GET
+    @Path("/{repoId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    public Response getRepositoryInfo(@PathParam("repoId") String repositoryId)
+    {
+        if (repositoryId != null)
+        {
+            try {
+                var info = storage.getRepositoryInfo(userService.getUser().getUserId(), repositoryId);
+                if (info != null)
+                    return Response.ok(new ResultValue(info)).build();
+                else
+                    return Response.status(Status.NOT_FOUND)
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                            .build();
+            } catch (RepositoryException e) {
+                return Response.serverError()
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(e.getMessage()))
+                        .build();
+            }
+        }
+        else
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage("Repository id missing"))
+                    .build();
+        }
+    }
+    
     @DELETE
     @Path("/{repoId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -95,7 +127,7 @@ public class RepositoryAdminResource
         {
             return Response.status(Status.BAD_REQUEST)
                     .type(MediaType.APPLICATION_JSON)
-                    .entity(new ResultErrorMessage("Bad repository data"))
+                    .entity(new ResultErrorMessage("Repository id missing"))
                     .build();
         }
     }

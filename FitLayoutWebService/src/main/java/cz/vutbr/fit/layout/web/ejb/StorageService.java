@@ -99,6 +99,11 @@ public class StorageService
         return provider.getRepositoryList(userId);
     }
     
+    public RepositoryInfo getRepositoryInfo(String userId, String repoId)
+    {
+        return provider.getRepositoryInfo(userId, repoId);
+    }
+    
     public RDFStorage getStorage(String userId, String repoId)
     {
         return provider.getStorage(userId, repoId);

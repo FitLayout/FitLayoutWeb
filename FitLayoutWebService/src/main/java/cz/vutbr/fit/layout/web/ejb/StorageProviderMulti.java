@@ -95,6 +95,18 @@ public class StorageProviderMulti implements StorageProvider
     }
 
     @Override
+    public RepositoryInfo getRepositoryInfo(String userId, String repoId)
+    {
+        if (isReady())
+        {
+            checkDefaultRepository(userId);
+            return findUserRepository(userId, repoId);
+        }
+        else
+            return null;
+    }
+
+    @Override
     public RDFStorage getStorage(String userId, String repoId)
     {
         final Repository repo = manager.getRepository(userId + SEP + repoId);
@@ -195,6 +207,19 @@ public class StorageProviderMulti implements StorageProvider
         manager.removeRepository(id);
     }
     
+    private RepositoryInfo findUserRepository(String userId, String repoId)
+    {
+        final var info = manager.getRepositoryInfo(userId + SEP + repoId);
+        if (info != null)
+        {
+            String id = info.getId().substring(userId.length() + 1);
+            var ret = new RepositoryInfo(id, info.getDescription());
+            return ret;
+        }
+        else
+            return null;
+    }
+
     private List<RepositoryInfo> findUserRepositories(String userId)
     {
         final var infos = manager.getAllRepositoryInfos();

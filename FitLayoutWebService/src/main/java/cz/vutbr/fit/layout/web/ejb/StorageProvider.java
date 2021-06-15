@@ -28,6 +28,8 @@ public interface StorageProvider
     public StorageStatus getStorageStatus(String userId);
     
     public List<RepositoryInfo> getRepositoryList(String userId);
+    
+    public RepositoryInfo getRepositoryInfo(String userId, String repoId);
 
     public RDFStorage getStorage(String userId, String repoId);
 
