@@ -158,6 +158,43 @@ public class StorageProviderMulti implements StorageProvider
         log.info("Created {}", repo);
     }
     
+    @Override
+    public void deleteRepository(String userId, String repoId)
+            throws RepositoryException
+    {
+        if (userId != null && repoId != null)
+        {
+            if (UserInfo.GUEST_USER.equals(userId))
+            {
+                if (DEFAULT_REPOSITORY.equals(repoId))
+                {
+                    deleteRepositoryWithId(userId + SEP + DEFAULT_REPOSITORY);
+                }
+                else
+                    throw new RepositoryException("Repository deletion not allowed");
+            }
+            else
+            {
+                final String id = userId + SEP + repoId;
+                var rinfo = manager.getRepositoryInfo(id);
+                if (rinfo != null)
+                {
+                    deleteRepositoryWithId(id);
+                }
+                else
+                    throw new RepositoryException("The repository does not exist");
+            }
+        }
+        else
+            throw new RepositoryException("Illegal repository data");
+    }
+
+    private void deleteRepositoryWithId(String id)
+    {
+        log.info("Deleting repository {}", id);
+        manager.removeRepository(id);
+    }
+    
     private List<RepositoryInfo> findUserRepositories(String userId)
     {
         final var infos = manager.getAllRepositoryInfos();

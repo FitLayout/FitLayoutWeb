@@ -115,6 +115,12 @@ public class StorageService
         provider.createRepository(userId, data);
     }
     
+    public void deleteRepository(String userId, String repoId)
+            throws RepositoryException
+    {
+        provider.deleteRepository(userId, repoId);
+    }
+        
     public void closeStorage()
     {
         provider.close();

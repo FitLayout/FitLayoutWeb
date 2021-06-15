@@ -97,6 +97,13 @@ public class StorageProviderSingle implements StorageProvider
     }
 
     @Override
+    public void deleteRepository(String userId, String repoId)
+        throws RepositoryException
+    {
+        throw new RepositoryException("Repository deletion is disabled");
+    }
+
+    @Override
     public void close()
     {
         if (storage != null)
