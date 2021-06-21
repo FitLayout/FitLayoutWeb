@@ -43,7 +43,7 @@ public class RepositoryAdminResource
     @PermitAll
     public Response listRepositories()
     {
-        return Response.ok(new ResultValue(storage.getRepositories(userService.getUser().getUserId()))).build();
+        return Response.ok(new ResultValue(storage.getRepositories(userService.getUser()))).build();
     }
     
     @POST
@@ -55,7 +55,7 @@ public class RepositoryAdminResource
         if (data != null && data.id != null)
         {
             try {
-                storage.createRepository(userService.getUser().getUserId(), data);
+                storage.createRepository(userService.getUser(), data);
                 return Response.ok(new ResultValue(null)).build();
             } catch (RepositoryException e) {
                 return Response.serverError()
@@ -82,7 +82,7 @@ public class RepositoryAdminResource
         if (repositoryId != null)
         {
             try {
-                var info = storage.getRepositoryInfo(userService.getUser().getUserId(), repositoryId);
+                var info = storage.getRepositoryInfo(userService.getUser(), repositoryId);
                 if (info != null)
                     return Response.ok(new ResultValue(info)).build();
                 else
@@ -114,7 +114,7 @@ public class RepositoryAdminResource
         if (repositoryId != null)
         {
             try {
-                storage.deleteRepository(userService.getUser().getUserId(), repositoryId);
+                storage.deleteRepository(userService.getUser(), repositoryId);
                 return Response.ok(new ResultValue(null)).build();
             } catch (RepositoryException e) {
                 return Response.serverError()
@@ -138,7 +138,7 @@ public class RepositoryAdminResource
     @PermitAll
     public Response getStatus()
     {
-        return Response.ok(new ResultValue(storage.getStatus(userService.getUser().getUserId()))).build();
+        return Response.ok(new ResultValue(storage.getStatus(userService.getUser()))).build();
     }
     
 }

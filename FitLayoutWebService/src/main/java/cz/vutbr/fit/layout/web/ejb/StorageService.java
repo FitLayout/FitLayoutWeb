@@ -21,6 +21,7 @@ import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.RDFStorage;
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
 import cz.vutbr.fit.layout.web.data.StorageStatus;
+import cz.vutbr.fit.layout.web.data.UserInfo;
 
 /**
  * 
@@ -89,41 +90,41 @@ public class StorageService
         return provider.isReady();
     }
     
-    public StorageStatus getStatus(String userId)
+    public StorageStatus getStatus(UserInfo user)
     {
-        return provider.getStorageStatus(userId);
+        return provider.getStorageStatus(user);
     }
     
-    public List<RepositoryInfo> getRepositories(String userId)
+    public List<RepositoryInfo> getRepositories(UserInfo user)
     {
-        return provider.getRepositoryList(userId);
+        return provider.getRepositoryList(user);
     }
     
-    public RepositoryInfo getRepositoryInfo(String userId, String repoId)
+    public RepositoryInfo getRepositoryInfo(UserInfo user, String repoId)
     {
-        return provider.getRepositoryInfo(userId, repoId);
+        return provider.getRepositoryInfo(user, repoId);
     }
     
-    public RDFStorage getStorage(String userId, String repoId)
+    public RDFStorage getStorage(UserInfo user, String repoId)
     {
-        return provider.getStorage(userId, repoId);
+        return provider.getStorage(user, repoId);
     }
     
-    public RDFArtifactRepository getArtifactRepository(String userId, String repoId)
+    public RDFArtifactRepository getArtifactRepository(UserInfo user, String repoId)
     {
-        return provider.getArtifactRepository(userId, repoId);
+        return provider.getArtifactRepository(user, repoId);
     }
 
-    public void createRepository(String userId, RepositoryInfo data)
+    public void createRepository(UserInfo user, RepositoryInfo data)
         throws RepositoryException
     {
-        provider.createRepository(userId, data);
+        provider.createRepository(user, data);
     }
     
-    public void deleteRepository(String userId, String repoId)
+    public void deleteRepository(UserInfo user, String repoId)
             throws RepositoryException
     {
-        provider.deleteRepository(userId, repoId);
+        provider.deleteRepository(user, repoId);
     }
         
     public void closeStorage()

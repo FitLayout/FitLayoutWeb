@@ -6,6 +6,7 @@
 package cz.vutbr.fit.layout.web.data;
 
 import java.security.Principal;
+import java.util.Date;
 
 /**
  * 
@@ -17,10 +18,13 @@ public class UserInfo
      * The user ID used for an unathorized user. This is not used when the REST endpoind is
      * disabled for anonymous sers.
      */
-    public static String GUEST_USER = "guest";
+    public static String ANONYMOUS_USER = "guest";
 
     public String userId;
     public boolean anonymous = true;
+    public boolean guest = false;
+    public Date expires = null;
+    
     
     public UserInfo()
     {
@@ -31,7 +35,7 @@ public class UserInfo
         if (principal == null || principal.getName() == null || "ANONYMOUS".equals(principal.getName()))
         {
             // unauthorized users
-            setUserId(GUEST_USER);
+            setUserId(ANONYMOUS_USER);
             setAnonymous(true);
         }
         else
@@ -60,6 +64,26 @@ public class UserInfo
     public void setAnonymous(boolean anonymous)
     {
         this.anonymous = anonymous;
+    }
+
+    public boolean isGuest()
+    {
+        return guest;
+    }
+
+    public void setGuest(boolean guest)
+    {
+        this.guest = guest;
+    }
+
+    public Date getExpires()
+    {
+        return expires;
+    }
+
+    public void setExpires(Date expires)
+    {
+        this.expires = expires;
     }
     
 }

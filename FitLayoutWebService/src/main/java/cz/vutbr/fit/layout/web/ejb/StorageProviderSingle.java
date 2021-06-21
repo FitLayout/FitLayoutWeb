@@ -15,6 +15,7 @@ import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.RDFStorage;
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
 import cz.vutbr.fit.layout.web.data.StorageStatus;
+import cz.vutbr.fit.layout.web.data.UserInfo;
 
 /**
  * Storage provider implementation for a single storage mode.
@@ -59,20 +60,20 @@ public class StorageProviderSingle implements StorageProvider
     }
     
     @Override
-    public StorageStatus getStorageStatus(String userId)
+    public StorageStatus getStorageStatus(UserInfo user)
     {
         return new StorageStatus(true, false, 1, 0);
     }
 
     @Override
-    public List<RepositoryInfo> getRepositoryList(String userId)
+    public List<RepositoryInfo> getRepositoryList(UserInfo user)
     {
         final RepositoryInfo info = new RepositoryInfo(DEFAULT_REPOSITORY, "The default preconfigured repository");
         return List.of(info);
     }
 
     @Override
-    public RepositoryInfo getRepositoryInfo(String userId, String repoId)
+    public RepositoryInfo getRepositoryInfo(UserInfo user, String repoId)
     {
         if (DEFAULT_REPOSITORY.equals(repoId))
         {
@@ -84,7 +85,7 @@ public class StorageProviderSingle implements StorageProvider
     }
 
     @Override
-    public RDFStorage getStorage(String userId, String repoId)
+    public RDFStorage getStorage(UserInfo user, String repoId)
     {
         if (DEFAULT_REPOSITORY.equals(repoId))
             return storage;
@@ -93,7 +94,7 @@ public class StorageProviderSingle implements StorageProvider
     }
     
     @Override
-    public RDFArtifactRepository getArtifactRepository(String userId, String repoId)
+    public RDFArtifactRepository getArtifactRepository(UserInfo user, String repoId)
     {
         if (DEFAULT_REPOSITORY.equals(repoId) && storage != null)
             return artifactRepository;
@@ -102,14 +103,14 @@ public class StorageProviderSingle implements StorageProvider
     }
     
     @Override
-    public void createRepository(String userId, RepositoryInfo info)
+    public void createRepository(UserInfo user, RepositoryInfo info)
         throws RepositoryException
     {
         throw new RepositoryException("Repository creation is disabled");
     }
 
     @Override
-    public void deleteRepository(String userId, String repoId)
+    public void deleteRepository(UserInfo user, String repoId)
         throws RepositoryException
     {
         throw new RepositoryException("Repository deletion is disabled");

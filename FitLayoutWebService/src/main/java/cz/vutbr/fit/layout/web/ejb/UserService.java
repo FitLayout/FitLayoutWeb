@@ -12,6 +12,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import cz.vutbr.fit.layout.web.data.UserInfo;
 
@@ -26,11 +27,14 @@ public class UserService
     private Principal principal;
 
     @Inject
+    private JsonWebToken token;
+    
+    @Inject
     private StorageService storage;
 
     @Inject
     @ConfigProperty(name = "fitlayout.auth.guestEnabled", defaultValue = "false")
-    boolean guestEnabled;
+    boolean anonymousEnabled;
     
     private UserInfo user;
     
@@ -44,7 +48,7 @@ public class UserService
     {
         if (storage.isSingleMode())
             return true; // no authorization is required when the storage is in sigle mode
-        else if (guestEnabled)
+        else if (anonymousEnabled)
             return true; // multi mode but guest user is used when authorization is missing
         else
             return !user.isAnonymous(); // no guest users allowed

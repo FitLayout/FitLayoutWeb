@@ -6,15 +6,28 @@
 package cz.vutbr.fit.layout.web.ejb;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.LinkedHashModel;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.config.RepositoryConfig;
 import org.eclipse.rdf4j.repository.manager.LocalRepositoryManager;
-import org.eclipse.rdf4j.repository.manager.RepositoryManager;
 import org.eclipse.rdf4j.repository.sail.config.SailRepositoryConfig;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.nativerdf.config.NativeStoreConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +37,7 @@ import cz.vutbr.fit.layout.rdf.RDFStorage;
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
 import cz.vutbr.fit.layout.web.data.StorageStatus;
 import cz.vutbr.fit.layout.web.data.UserInfo;
+import cz.vutbr.fit.layout.web.ontology.REPOSITORY;
 
 /**
  * Storage provider implementation for a multi storage using a repository manager.
@@ -38,15 +52,22 @@ public class StorageProviderMulti implements StorageProvider
     
     private static final String SEP = "-";
     private static final int REPOSITORY_LIMIT = 4;
+    private static final int REPOSITORY_EXPIRATION_HOURS = 12;
+    private static final String METAFILE = "flrepos.ttl";
+    private static final int METAFILE_VERSION = 1;
     
     private boolean autoCreateDefault;
     private String configPath;
-    private RepositoryManager manager;
+    private LocalRepositoryManager manager;
+    private Model metadata;
+    private ValueFactory vf;
+    
 
     public StorageProviderMulti(String configPath)
     {
         this.configPath = configPath;
         autoCreateDefault = false;
+        vf = SimpleValueFactory.getInstance();
         init();
     }
 
@@ -66,6 +87,7 @@ public class StorageProviderMulti implements StorageProvider
         final File baseDir = new File(path);
         manager = new LocalRepositoryManager(baseDir);
         manager.init();
+        metadata = loadMetadata();
     }
     
     public boolean isReady()
@@ -74,42 +96,42 @@ public class StorageProviderMulti implements StorageProvider
     }
     
     @Override
-    public StorageStatus getStorageStatus(String userId)
+    public StorageStatus getStorageStatus(UserInfo user)
     {
-        checkDefaultRepository(userId);
-        List<RepositoryInfo> repos = getRepositoryList(userId);
+        checkDefaultRepository(user);
+        List<RepositoryInfo> repos = getRepositoryList(user);
         int cnt = repos.size();
         return new StorageStatus(false, cnt < REPOSITORY_LIMIT, cnt, REPOSITORY_LIMIT - cnt);
     }
 
     @Override
-    public List<RepositoryInfo> getRepositoryList(String userId)
+    public List<RepositoryInfo> getRepositoryList(UserInfo user)
     {
         if (isReady())
         {
-            checkDefaultRepository(userId);
-            return findUserRepositories(userId);
+            checkDefaultRepository(user);
+            return findUserRepositories(user.getUserId());
         }
         else
             return List.of();
     }
 
     @Override
-    public RepositoryInfo getRepositoryInfo(String userId, String repoId)
+    public RepositoryInfo getRepositoryInfo(UserInfo user, String repoId)
     {
         if (isReady())
         {
-            checkDefaultRepository(userId);
-            return findUserRepository(userId, repoId);
+            checkDefaultRepository(user);
+            return findUserRepository(user.getUserId(), repoId);
         }
         else
             return null;
     }
 
     @Override
-    public RDFStorage getStorage(String userId, String repoId)
+    public RDFStorage getStorage(UserInfo user, String repoId)
     {
-        final Repository repo = manager.getRepository(userId + SEP + repoId);
+        final Repository repo = manager.getRepository(user.getUserId() + SEP + repoId);
         if (repo != null)
             return RDFStorage.create(repo);
         else
@@ -117,9 +139,9 @@ public class StorageProviderMulti implements StorageProvider
     }
 
     @Override
-    public RDFArtifactRepository getArtifactRepository(String userId, String repoId)
+    public RDFArtifactRepository getArtifactRepository(UserInfo user, String repoId)
     {
-        final RDFStorage storage = getStorage(userId, repoId);
+        final RDFStorage storage = getStorage(user, repoId);
         if (storage != null)
             return new RDFArtifactRepository(storage);
         else
@@ -127,27 +149,27 @@ public class StorageProviderMulti implements StorageProvider
     }
 
     @Override
-    public void createRepository(String userId, RepositoryInfo info)
+    public void createRepository(UserInfo user, RepositoryInfo info)
             throws RepositoryException
     {
         if (info != null && info.getId() != null)
         {
-            if (UserInfo.GUEST_USER.equals(userId))
+            if (user.isAnonymous() || user.isGuest())
             {
                 if (DEFAULT_REPOSITORY.equals(info.getId()))
                 {
-                    createRepositoryWithId(userId + SEP + DEFAULT_REPOSITORY, info.getDescription());
+                    createRepositoryWithId(user.getUserId() + SEP + DEFAULT_REPOSITORY, info.getDescription(), user.getExpires());
                 }
                 else
                     throw new RepositoryException("Repository creation not allowed");
             }
             else
             {
-                final String id = userId + SEP + info.getId();
+                final String id = user.getUserId() + SEP + info.getId();
                 var rinfo = manager.getRepositoryInfo(id);
                 if (rinfo == null)
                 {
-                    createRepositoryWithId(id, info.getDescription());
+                    createRepositoryWithId(id, info.getDescription(), null);
                 }
                 else
                     throw new RepositoryException("The repository already exists");
@@ -157,7 +179,7 @@ public class StorageProviderMulti implements StorageProvider
             throw new RepositoryException("Illegal repository data");
     }
 
-    private void createRepositoryWithId(String id, String description)
+    private void createRepositoryWithId(String id, String description, Date expires)
     {
         log.info("Creating repository {}", id);
         final RepositoryConfig conf;
@@ -167,27 +189,28 @@ public class StorageProviderMulti implements StorageProvider
             conf = new RepositoryConfig(id, description, new SailRepositoryConfig(new NativeStoreConfig()));
         manager.addRepositoryConfig(conf);
         Repository repo = manager.getRepository(id);
+        
+        final IRI iri = repoIRI(id);
+        metadata.add(iri, REPOSITORY.createdOn, vf.createLiteral(new Date()));
+        if (expires != null)
+            metadata.add(iri, REPOSITORY.expires, vf.createLiteral(expires));
+        
         log.info("Created {}", repo);
     }
     
     @Override
-    public void deleteRepository(String userId, String repoId)
+    public void deleteRepository(UserInfo user, String repoId)
             throws RepositoryException
     {
-        if (userId != null && repoId != null)
+        if (repoId != null)
         {
-            if (UserInfo.GUEST_USER.equals(userId))
+            if (user.isAnonymous() || user.isGuest())
             {
-                if (DEFAULT_REPOSITORY.equals(repoId))
-                {
-                    deleteRepositoryWithId(userId + SEP + DEFAULT_REPOSITORY);
-                }
-                else
-                    throw new RepositoryException("Repository deletion not allowed");
+                throw new RepositoryException("Repository deletion not allowed");
             }
             else
             {
-                final String id = userId + SEP + repoId;
+                final String id = user.getUserId() + SEP + repoId;
                 var rinfo = manager.getRepositoryInfo(id);
                 if (rinfo != null)
                 {
@@ -236,16 +259,16 @@ public class StorageProviderMulti implements StorageProvider
         return ret;
     }
 
-    private void checkDefaultRepository(String userId)
+    private void checkDefaultRepository(UserInfo user)
             throws RepositoryException
     {
         if (autoCreateDefault)
         {
-            final var infos = findUserRepositories(userId);
+            final var infos = findUserRepositories(user.getUserId());
             if (infos.size() == 0)
             {
                 RepositoryInfo defaultInfo = new RepositoryInfo(DEFAULT_REPOSITORY, "Default repository");
-                createRepository(userId, defaultInfo);
+                createRepository(user, defaultInfo);
             }
         }
     }
@@ -255,6 +278,56 @@ public class StorageProviderMulti implements StorageProvider
     {
         manager.shutDown();
         manager = null;
+    }
+    
+    //=====================================================================================
+    
+    private Date getExpirationDate()
+    {
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.HOUR, REPOSITORY_EXPIRATION_HOURS);
+        return c.getTime();
+    }
+    
+    private IRI repoIRI(String id)
+    {
+        return vf.createIRI(REPOSITORY.NAMESPACE, "r-" + id);
+    }
+    
+    private Model emptyMetadata()
+    {
+        Model ret = new LinkedHashModel();
+        ret.add(REPOSITORY.Repository, REPOSITORY.version, vf.createLiteral(METAFILE_VERSION));
+        ret.add(REPOSITORY.Repository, REPOSITORY.createdOn, vf.createLiteral(new java.util.Date()));
+        return ret;
+    }
+    
+    private Model loadMetadata()
+    {
+        Model ret = null;
+        final File mdfile = manager.resolvePath(METAFILE);
+        if (mdfile.exists())
+        {
+            try (InputStream is = new FileInputStream(mdfile)) {
+                ret = Rio.parse(is, null, RDFFormat.TURTLE);
+                return ret;
+            } catch (IOException e) {
+                log.error("Couldn't load metadata: {}", e.getMessage());
+            }
+        }
+        if (ret == null)
+            ret = new LinkedHashModel();
+        return ret;
+    }
+    
+    private void saveMetadata(Model model)
+    {
+        final File mdfile = manager.resolvePath(METAFILE);
+        try (OutputStream os = new FileOutputStream(mdfile)) {
+            Rio.write(model, os, RDFFormat.TURTLE);
+        } catch (IOException e) {
+            log.error("Couldn't save metadata: {}", e.getMessage());
+        }
     }
     
 }
