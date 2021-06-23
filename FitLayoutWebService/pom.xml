@@ -88,6 +88,13 @@
 			<version>${logback.version}</version>
 		</dependency>
 
+		<!-- JWT -->
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>nimbus-jose-jwt</artifactId>
+			<version>9.10</version>
+		</dependency>
+
 		<!-- Jakarta EE and microprofile -->
 		<dependency>
 			<groupId>jakarta.platform</groupId>
