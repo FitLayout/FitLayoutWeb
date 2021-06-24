@@ -53,6 +53,13 @@ public class REPOSITORY {
 	public static final IRI expires;
 
 	/**
+	 * {@code http://fitlayout.github.io/ontology/repository.owl#name}.
+	 *
+	 * @see <a href="http://fitlayout.github.io/ontology/repository.owl#name">name</a>
+	 */
+	public static final IRI name;
+
+	/**
 	 * {@code http://fitlayout.github.io/ontology/repository.owl#owner}.
 	 * <p>
 	 * An identification of the service that created an artifact.
@@ -91,6 +98,7 @@ public class REPOSITORY {
 		createdOn = factory.createIRI(REPOSITORY.NAMESPACE, "createdOn");
 		email = factory.createIRI(REPOSITORY.NAMESPACE, "email");
 		expires = factory.createIRI(REPOSITORY.NAMESPACE, "expires");
+		name = factory.createIRI(REPOSITORY.NAMESPACE, "name");
 		owner = factory.createIRI(REPOSITORY.NAMESPACE, "owner");
 		Repository = factory.createIRI(REPOSITORY.NAMESPACE, "Repository");
 		uuid = factory.createIRI(REPOSITORY.NAMESPACE, "uuid");

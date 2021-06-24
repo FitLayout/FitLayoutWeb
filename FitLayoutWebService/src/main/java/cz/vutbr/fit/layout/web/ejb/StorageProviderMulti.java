@@ -186,6 +186,8 @@ public class StorageProviderMulti implements StorageProvider
             metadata.add(iri, REPOSITORY.email, vf.createLiteral(info.getEmail()));
         if (owner != null)
             metadata.add(iri, REPOSITORY.owner, vf.createLiteral(owner));
+        if (info.getDescription() != null)
+            metadata.add(iri, REPOSITORY.name, vf.createLiteral(info.getDescription()));
         saveMetadata();
         
         log.info("Created {}", repo);
@@ -268,6 +270,10 @@ public class StorageProviderMulti implements StorageProvider
             else if (REPOSITORY.owner.equals(pred))
             {
                 ret.setOwner(value.stringValue());
+            }
+            else if (REPOSITORY.name.equals(pred))
+            {
+                ret.setDescription(value.stringValue());
             }
         }
         return ret;
