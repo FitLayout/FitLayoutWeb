@@ -26,6 +26,7 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Models;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.config.RepositoryConfig;
@@ -331,6 +332,8 @@ public class StorageProviderMulti implements StorageProvider
     private Model emptyMetadata()
     {
         Model ret = new LinkedHashModel();
+        ret.setNamespace("rr", REPOSITORY.NAMESPACE);
+        ret.setNamespace("xsd", XSD.NAMESPACE);
         ret.add(REPOSITORY.Repository, REPOSITORY.version, vf.createLiteral(METAFILE_VERSION));
         ret.add(REPOSITORY.Repository, REPOSITORY.createdOn, vf.createLiteral(new java.util.Date()));
         return ret;
