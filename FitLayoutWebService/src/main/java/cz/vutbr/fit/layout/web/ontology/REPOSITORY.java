@@ -21,6 +21,13 @@ public class REPOSITORY {
 	public static final String PREFIX = "repository";
 
 	/**
+	 * {@code http://fitlayout.github.io/ontology/repository.owl#accessedOn}.
+	 *
+	 * @see <a href="http://fitlayout.github.io/ontology/repository.owl#accessedOn">accessedOn</a>
+	 */
+	public static final IRI accessedOn;
+
+	/**
 	 * {@code http://fitlayout.github.io/ontology/repository.owl#createdOn}.
 	 * <p>
 	 * Creation date/time for the repository
@@ -28,6 +35,13 @@ public class REPOSITORY {
 	 * @see <a href="http://fitlayout.github.io/ontology/repository.owl#createdOn">createdOn</a>
 	 */
 	public static final IRI createdOn;
+
+	/**
+	 * {@code http://fitlayout.github.io/ontology/repository.owl#email}.
+	 *
+	 * @see <a href="http://fitlayout.github.io/ontology/repository.owl#email">email</a>
+	 */
+	public static final IRI email;
 
 	/**
 	 * {@code http://fitlayout.github.io/ontology/repository.owl#expires}.
@@ -57,6 +71,13 @@ public class REPOSITORY {
 	public static final IRI Repository;
 
 	/**
+	 * {@code http://fitlayout.github.io/ontology/repository.owl#uuid}.
+	 *
+	 * @see <a href="http://fitlayout.github.io/ontology/repository.owl#uuid">uuid</a>
+	 */
+	public static final IRI uuid;
+
+	/**
 	 * {@code http://fitlayout.github.io/ontology/repository.owl#version}.
 	 *
 	 * @see <a href="http://fitlayout.github.io/ontology/repository.owl#version">version</a>
@@ -66,10 +87,13 @@ public class REPOSITORY {
 	static {
 		ValueFactory factory = SimpleValueFactory.getInstance();
 
+		accessedOn = factory.createIRI(REPOSITORY.NAMESPACE, "accessedOn");
 		createdOn = factory.createIRI(REPOSITORY.NAMESPACE, "createdOn");
+		email = factory.createIRI(REPOSITORY.NAMESPACE, "email");
 		expires = factory.createIRI(REPOSITORY.NAMESPACE, "expires");
 		owner = factory.createIRI(REPOSITORY.NAMESPACE, "owner");
 		Repository = factory.createIRI(REPOSITORY.NAMESPACE, "Repository");
+		uuid = factory.createIRI(REPOSITORY.NAMESPACE, "uuid");
 		version = factory.createIRI(REPOSITORY.NAMESPACE, "version");
 	}
 

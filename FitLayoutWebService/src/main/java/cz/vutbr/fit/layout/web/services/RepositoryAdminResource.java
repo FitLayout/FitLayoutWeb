@@ -5,6 +5,8 @@
  */
 package cz.vutbr.fit.layout.web.services;
 
+import java.util.List;
+
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -43,7 +45,11 @@ public class RepositoryAdminResource
     @PermitAll
     public Response listRepositories()
     {
-        return Response.ok(new ResultValue(storage.getRepositories(userService.getUser()))).build();
+        var user = userService.getUser();
+        if (user != null && !user.isGuest() && !user.isAnonymous())
+            return Response.ok(new ResultValue(storage.getRepositories(user))).build();
+        else
+            return Response.ok(new ResultValue(List.of())).build();
     }
     
     @POST

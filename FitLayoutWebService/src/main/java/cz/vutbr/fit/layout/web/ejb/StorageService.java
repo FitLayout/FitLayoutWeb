@@ -68,7 +68,6 @@ public class StorageService
         {
             log.info("Initializing multi mode repository in {}", configPath);
             provider = new StorageProviderMulti(configPath);
-            ((StorageProviderMulti) provider).setAutoCreateDefault(autoCreateDefault);
         }
     }
     
