@@ -313,6 +313,7 @@ public class StorageProviderMulti implements StorageProvider
         final IRI iri = repoIRI(uuid);
         metadata.remove(iri, REPOSITORY.accessedOn, null);
         metadata.add(iri, REPOSITORY.accessedOn, vf.createLiteral(new Date()));
+        saveMetadata();
     }
     
     @Override
