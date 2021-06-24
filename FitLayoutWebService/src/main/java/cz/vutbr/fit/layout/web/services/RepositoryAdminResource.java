@@ -58,11 +58,11 @@ public class RepositoryAdminResource
     @PermitAll
     public Response createRepository(RepositoryInfo data)
     {
-        if (data != null && data.id != null)
+        if (data != null)
         {
             try {
                 storage.createRepository(userService.getUser(), data);
-                return Response.ok(new ResultValue(null)).build();
+                return Response.ok(new ResultValue(data)).build();
             } catch (RepositoryException e) {
                 return Response.serverError()
                         .type(MediaType.APPLICATION_JSON)
