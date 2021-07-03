@@ -6,17 +6,13 @@
 package cz.vutbr.fit.layout.web.ejb;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.eclipse.rdf4j.IsolationLevels;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
@@ -27,12 +23,16 @@ import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
+import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.config.RepositoryConfig;
 import org.eclipse.rdf4j.repository.manager.LocalRepositoryManager;
 import org.eclipse.rdf4j.repository.sail.config.SailRepositoryConfig;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.nativerdf.config.NativeStoreConfig;
 import org.slf4j.Logger;
@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.RDFStorage;
-import cz.vutbr.fit.layout.rdf.RESOURCE;
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
 import cz.vutbr.fit.layout.web.data.StorageStatus;
 import cz.vutbr.fit.layout.web.data.UserInfo;
@@ -56,13 +55,12 @@ public class StorageProviderMulti implements StorageProvider
     private static Logger log = LoggerFactory.getLogger(StorageProviderMulti.class);
     
     private static final String SEP = "-";
-    private static final String METAFILE = "flrepos.ttl";
+    private static final String META_REPOSITORY = "SYSTEM-FITLAYOUT";
     private static final int METAFILE_VERSION = 1;
     
     private boolean autoCreateDefault;
     private String configPath;
     private LocalRepositoryManager manager;
-    private Model metadata;
     private ValueFactory vf;
     
 
@@ -85,7 +83,6 @@ public class StorageProviderMulti implements StorageProvider
         final File baseDir = new File(path);
         manager = new LocalRepositoryManager(baseDir);
         manager.init();
-        metadata = loadMetadata();
     }
     
     public boolean isReady()
@@ -102,6 +99,7 @@ public class StorageProviderMulti implements StorageProvider
     @Override
     public StorageStatus getStorageStatus(UserInfo user)
     {
+        dumpMetadata();
         List<RepositoryInfo> repos = getRepositoryList(user);
         int cnt = repos.size();
         return new StorageStatus(false, true, cnt, -1);
@@ -177,6 +175,7 @@ public class StorageProviderMulti implements StorageProvider
         Repository repo = manager.getRepository(id);
         
         final IRI iri = repoIRI(info.getId());
+        Model metadata = new LinkedHashModel();
         metadata.add(iri, REPOSITORY.uuid, vf.createLiteral(info.getId()));
         metadata.add(iri, REPOSITORY.version, vf.createLiteral(METAFILE_VERSION));
         metadata.add(iri, REPOSITORY.createdOn, vf.createLiteral(new Date()));
@@ -189,7 +188,7 @@ public class StorageProviderMulti implements StorageProvider
             metadata.add(iri, REPOSITORY.owner, vf.createLiteral(owner));
         if (info.getDescription() != null)
             metadata.add(iri, REPOSITORY.name, vf.createLiteral(info.getDescription()));
-        saveMetadata();
+        addMetadata(metadata);
         
         log.info("Created {}", repo);
     }
@@ -225,22 +224,28 @@ public class StorageProviderMulti implements StorageProvider
         log.info("Deleting repository {}", id);
         manager.removeRepository(id);
         final IRI iri = repoIRI(uuid);
-        metadata.remove(iri, null, null);
+        try (RepositoryConnection con = getMetaRepository().getConnection()) {
+            con.remove(iri, null, null);
+        }
     }
     
     private RepositoryInfo findRepository(String uuid)
     {
-        Optional<IRI> repoIri = Models.subjectIRI(metadata.filter(null, REPOSITORY.uuid, vf.createLiteral(uuid)));
-        if (repoIri.isPresent())
-            return loadRepositoryInfo(repoIri.get());
-        else
-            return null;
+        try (RepositoryConnection con = getMetaRepository().getConnection()) {
+            RepositoryResult<Statement> statements = con.getStatements(null, REPOSITORY.uuid, vf.createLiteral(uuid));
+            Optional<IRI> repoIri = Models.subjectIRI(statements);
+            if (repoIri.isPresent())
+                return loadRepositoryInfo(con, repoIri.get());
+            else
+                return null;
+        }
     }
     
-    private RepositoryInfo loadRepositoryInfo(IRI repositoryIri)
+    private RepositoryInfo loadRepositoryInfo(RepositoryConnection con, IRI repositoryIri)
     {
         RepositoryInfo ret = new RepositoryInfo();
-        for (Statement st : metadata.filter(repositoryIri, null, null))
+        final RepositoryResult<Statement> statements = con.getStatements(repositoryIri, null, null);
+        for (Statement st : statements)
         {
             final IRI pred = st.getPredicate();
             final Value value = st.getObject();
@@ -311,9 +316,12 @@ public class StorageProviderMulti implements StorageProvider
     private void updateAccessDate(String uuid)
     {
         final IRI iri = repoIRI(uuid);
-        metadata.remove(iri, REPOSITORY.accessedOn, null);
-        metadata.add(iri, REPOSITORY.accessedOn, vf.createLiteral(new Date()));
-        saveMetadata();
+        try (RepositoryConnection con = getMetaRepository().getConnection()) {
+            con.begin(IsolationLevels.SERIALIZABLE);
+            con.remove(iri, REPOSITORY.accessedOn, null);
+            con.add(iri, REPOSITORY.accessedOn, vf.createLiteral(new Date()));
+            con.commit();
+        }
     }
     
     @Override
@@ -330,6 +338,41 @@ public class StorageProviderMulti implements StorageProvider
         return vf.createIRI("urn:uuid:" + uuid);
     }
     
+    private Repository getMetaRepository()
+    {
+        Repository repo = manager.getRepository(META_REPOSITORY);
+        if (repo == null)
+        {
+            final RepositoryConfig conf = new RepositoryConfig(META_REPOSITORY, new SailRepositoryConfig(new NativeStoreConfig()));
+            manager.addRepositoryConfig(conf);
+            repo = manager.getRepository(META_REPOSITORY);
+            if (repo != null)
+            {
+                // initialize the connection with default metadata
+                try (RepositoryConnection con = repo.getConnection()) {
+                    con.add(emptyMetadata());
+                }
+            }
+            else
+                log.error("Internal error: Couldn't create metadata repository");
+        }
+        return repo;
+    }
+    
+    private void addMetadata(Model metadata)
+    {
+        log.debug("Adding metadata");
+        final Repository repo = getMetaRepository();
+        if (repo != null)
+        {
+            try (RepositoryConnection con = repo.getConnection()) {
+                con.add(metadata);
+            } catch (RepositoryException e) {
+                log.error("Could not save metadata: {}", e.getMessage());
+            }
+        } 
+    }
+    
     private Model emptyMetadata()
     {
         Model ret = new LinkedHashModel();
@@ -340,37 +383,13 @@ public class StorageProviderMulti implements StorageProvider
         return ret;
     }
     
-    private Model loadMetadata()
+    private void dumpMetadata()
     {
-        Model ret = null;
-        final File mdfile = manager.resolvePath(METAFILE);
-        if (mdfile.exists())
-        {
-            try (InputStream is = new FileInputStream(mdfile)) {
-                ret = Rio.parse(is, RESOURCE.NAMESPACE, RDFFormat.TURTLE);
-                return ret;
-            } catch (IOException e) {
-                log.error("Couldn't load metadata: {}", e.getMessage());
-            }
-        }
-        if (ret == null)
-            ret = emptyMetadata();
-        return ret;
-    }
-    
-    private void saveMetadata()
-    {
-        saveMetadata(metadata);
-    }
-    
-    private void saveMetadata(Model model)
-    {
-        final File mdfile = manager.resolvePath(METAFILE);
-        try (OutputStream os = new FileOutputStream(mdfile)) {
-            Rio.write(model, os, RDFFormat.TURTLE);
-        } catch (IOException e) {
-            log.error("Couldn't save metadata: {}", e.getMessage());
-        }
+        try (RepositoryConnection con = getMetaRepository().getConnection()) {
+            RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, System.out);
+            con.prepareGraphQuery(QueryLanguage.SPARQL,
+                "CONSTRUCT {?s ?p ?o } WHERE {?s ?p ?o } ").evaluate(writer);
+        }        
     }
     
 }
