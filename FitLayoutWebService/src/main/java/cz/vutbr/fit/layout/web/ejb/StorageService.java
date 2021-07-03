@@ -89,6 +89,11 @@ public class StorageService
         return provider.isReady();
     }
     
+    public void touch(UserInfo user, String repoId)
+    {
+        provider.touch(user, repoId);
+    }
+    
     public StorageStatus getStatus(UserInfo user)
     {
         return provider.getStorageStatus(user);

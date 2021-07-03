@@ -94,6 +94,12 @@ public class StorageProviderMulti implements StorageProvider
     }
     
     @Override
+    public void touch(UserInfo user, String repoId)
+    {
+        updateAccessDate(repoId);
+    }
+
+    @Override
     public StorageStatus getStorageStatus(UserInfo user)
     {
         List<RepositoryInfo> repos = getRepositoryList(user);
@@ -128,10 +134,7 @@ public class StorageProviderMulti implements StorageProvider
     {
         final Repository repo = manager.getRepository(user.getUserId() + SEP + repoId);
         if (repo != null)
-        {
-            updateAccessDate(repoId);
             return RDFStorage.create(repo);
-        }
         else
             return null;
     }
@@ -141,10 +144,7 @@ public class StorageProviderMulti implements StorageProvider
     {
         final RDFStorage storage = getStorage(user, repoId);
         if (storage != null)
-        {
-            updateAccessDate(repoId);
             return new RDFArtifactRepository(storage);
-        }
         else
             return null;
     }

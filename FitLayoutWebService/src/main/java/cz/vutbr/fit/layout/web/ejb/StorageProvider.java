@@ -26,6 +26,8 @@ public interface StorageProvider
 
     public boolean isReady();
     
+    public void touch(UserInfo user, String repoId);
+    
     public StorageStatus getStorageStatus(UserInfo user);
     
     public List<RepositoryInfo> getRepositoryList(UserInfo user);

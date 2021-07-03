@@ -60,6 +60,11 @@ public class StorageProviderSingle implements StorageProvider
     }
     
     @Override
+    public void touch(UserInfo user, String repoId)
+    {
+    }
+
+    @Override
     public StorageStatus getStorageStatus(UserInfo user)
     {
         return new StorageStatus(true, false, 1, 0);

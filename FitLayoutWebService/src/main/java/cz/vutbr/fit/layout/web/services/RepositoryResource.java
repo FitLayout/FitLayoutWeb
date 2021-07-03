@@ -57,6 +57,15 @@ public class RepositoryResource
     @PathParam("repoId")
     private String repoId;
     
+    @GET
+    @Path("/touch")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    public Response touch()
+    {
+        storage.touch(userService.getUser(), repoId);
+        return Response.ok(new ResultValue(null)).build();
+    }
     
     @POST
     @Path("/query")
