@@ -6,6 +6,7 @@
 package cz.vutbr.fit.layout.web.ejb;
 
 import java.security.Principal;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
@@ -57,6 +58,14 @@ public class UserService
     public UserInfo getUser()
     {
         return user;
+    }
+    
+    public Set<String> getGroups()
+    {
+        if (token != null)
+            return token.getGroups();
+        else
+            return Set.of();
     }
     
 }
