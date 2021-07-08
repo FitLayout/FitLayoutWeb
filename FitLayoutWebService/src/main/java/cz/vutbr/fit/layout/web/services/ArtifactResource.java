@@ -72,7 +72,7 @@ public class ArtifactResource
      * @param iri the artifact IRI or {@code null} for all artifacts
      * @return
      */
-    private Response getArtifactInfo(String iriValue, String mimeType)
+    private Response serializeArtifactInfo(String iriValue, String mimeType)
     {
         try {
             final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
@@ -121,7 +121,7 @@ public class ArtifactResource
     @PermitAll
     public Response getArtifactsInfoJSON()
     {
-        return getArtifactInfo(null, Serialization.JSONLD);
+        return serializeArtifactInfo(null, Serialization.JSONLD);
     }
     
     @GET
@@ -130,7 +130,16 @@ public class ArtifactResource
     @PermitAll
     public Response getArtifactsInfoTurtle()
     {
-        return getArtifactInfo(null, Serialization.TURTLE);
+        return serializeArtifactInfo(null, Serialization.TURTLE);
+    }
+    
+    @GET
+    @Path("/")
+    @Produces(Serialization.RDFXML)
+    @PermitAll
+    public Response getArtifactsInfoRDFXML()
+    {
+        return serializeArtifactInfo(null, Serialization.RDFXML);
     }
     
     @GET
@@ -224,7 +233,7 @@ public class ArtifactResource
         }
     }
 
-    private Response getArtifact(String iriValue, String mimeType)
+    private Response serializeArtifact(String iriValue, String mimeType)
     {
         try {
             final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
@@ -276,9 +285,9 @@ public class ArtifactResource
     @Path("/item/{iri}")
     @Produces(Serialization.JSONLD)
     @PermitAll
-    public Response getArtifactJSON(@PathParam("iri") String iriValue)
+    public Response getArtifactJSONLD(@PathParam("iri") String iriValue)
     {
-        return getArtifact(iriValue, Serialization.JSONLD);
+        return serializeArtifact(iriValue, Serialization.JSONLD);
     }
     
     @GET
@@ -287,7 +296,16 @@ public class ArtifactResource
     @PermitAll
     public Response getArtifactTurtle(@PathParam("iri") String iriValue)
     {
-        return getArtifact(iriValue, Serialization.TURTLE);
+        return serializeArtifact(iriValue, Serialization.TURTLE);
+    }
+    
+    @GET
+    @Path("/item/{iri}")
+    @Produces(Serialization.RDFXML)
+    @PermitAll
+    public Response getArtifactRDFXML(@PathParam("iri") String iriValue)
+    {
+        return serializeArtifact(iriValue, Serialization.RDFXML);
     }
     
     @DELETE
@@ -351,7 +369,7 @@ public class ArtifactResource
     @PermitAll
     public Response getArtifactInfoJSON(@PathParam("iri") String iriValue)
     {
-        return getArtifactInfo(iriValue, Serialization.JSONLD);
+        return serializeArtifactInfo(iriValue, Serialization.JSONLD);
     }
     
     @GET
@@ -360,7 +378,16 @@ public class ArtifactResource
     @PermitAll
     public Response getArtifactInfoTurtle(@PathParam("iri") String iriValue)
     {
-        return getArtifactInfo(iriValue, Serialization.TURTLE);
+        return serializeArtifactInfo(iriValue, Serialization.TURTLE);
+    }
+    
+    @GET
+    @Path("/info/{iri}")
+    @Produces(Serialization.RDFXML)
+    @PermitAll
+    public Response getArtifactInfoRDFXML(@PathParam("iri") String iriValue)
+    {
+        return serializeArtifactInfo(iriValue, Serialization.RDFXML);
     }
     
     //@GET
