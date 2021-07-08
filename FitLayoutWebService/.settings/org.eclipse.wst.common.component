@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
-                                                
+                                                    
+    
     
     
     
@@ -11,7 +12,8 @@
     
     
     <wb-module deploy-name="fitlayout-web">
-                                                                                                
+                                                                                                        
+        
         
         
         
@@ -23,7 +25,8 @@
         
         
         <wb-resource deploy-path="/" source-path="/target/m2e-wtp/web-resources"/>
-                                                                                                
+                                                                                                        
+        
         
         
         
@@ -35,7 +38,8 @@
         
         
         <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
-                                                                                                
+                                                                                                        
+        
         
         
         
@@ -47,7 +51,8 @@
         
         
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
-                                                                                                
+                                                                                                        
+        
         
         
         
@@ -59,10 +64,13 @@
         
         
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
-        <dependent-module archiveName="fitlayout-render-cssbox-2.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/fitlayout-render-cssbox/fitlayout-render-cssbox">
+        <dependent-module archiveName="fitlayout-io-2.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/fitlayout-io/fitlayout-io">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module archiveName="fitlayout-core-2.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/fitlayout-core/fitlayout-core">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="fitlayout-render-cssbox-2.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/fitlayout-render-cssbox/fitlayout-render-cssbox">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module archiveName="fitlayout-render-puppeteer-2.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/fitlayout-render-puppeteer/fitlayout-render-puppeteer">
@@ -83,7 +91,8 @@
         <dependent-module archiveName="fitlayout-text-2.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/fitlayout-text/fitlayout-text">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-                                                                                                
+                                                                                                        
+        
         
         
         
@@ -95,14 +104,16 @@
         
         
         <property name="java-output-path" value="/FitLayoutWeb/target/classes"/>
-                                                        
+                                                                
+        
         
         
         
         
         
         <property name="context-root" value="fitlayout-web"/>
-                                                                                            
+                                                                                                    
+    
     
     
     
@@ -114,7 +125,8 @@
     
     
     </wb-module>
-                                            
+                                                
+
 
 
 

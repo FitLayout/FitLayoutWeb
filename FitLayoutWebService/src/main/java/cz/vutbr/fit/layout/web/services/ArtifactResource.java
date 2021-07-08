@@ -40,11 +40,14 @@ import cz.vutbr.fit.layout.api.ArtifactService;
 import cz.vutbr.fit.layout.api.ParametrizedOperation;
 import cz.vutbr.fit.layout.api.ServiceException;
 import cz.vutbr.fit.layout.api.ServiceManager;
+import cz.vutbr.fit.layout.model.AreaTree;
 import cz.vutbr.fit.layout.model.Artifact;
+import cz.vutbr.fit.layout.model.Page;
 import cz.vutbr.fit.layout.ontology.BOX;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.Serialization;
 import cz.vutbr.fit.layout.web.FLConfig;
+import cz.vutbr.fit.layout.web.StreamOutput;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.ServiceParams;
@@ -233,7 +236,14 @@ public class ArtifactResource
         }
     }
 
-    private Response serializeArtifact(String iriValue, String mimeType)
+    /**
+     * Serializes the artifact RDF model as obtained from the repository (without constructing
+     * the java representation if the artifact). 
+     * @param iriValue
+     * @param mimeType
+     * @return
+     */
+    private Response serializeArtifactModel(String iriValue, String mimeType)
     {
         try {
             final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
@@ -281,13 +291,101 @@ public class ArtifactResource
         }
     }
     
+    /**
+     * Serializes the Java representation of the artifact (if available).
+     * 
+     * @param iriValue
+     * @param mimeType
+     * @return
+     */
+    private Response serializeArtifact(String iriValue, String mimeType)
+    {
+        try {
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+            if (repo != null)
+            {
+                IRI iri = repo.getIriDecoder().decodeIri(iriValue);
+                Artifact a = repo.getArtifact(iri);
+                if (a != null)
+                {
+                    if (a instanceof Page)
+                    {
+                        StreamingOutput stream = new StreamingOutput() {
+                            @Override
+                            public void write(OutputStream os) throws IOException, WebApplicationException {
+                                StreamOutput.pageToStream((Page) a, os, mimeType);
+                            }
+                        };
+                        return Response.ok(stream)
+                                .type(mimeType)
+                                .build();
+                    }
+                    else if (a instanceof AreaTree)
+                    {
+                        Artifact p = repo.getArtifact(((AreaTree) a).getPageIri());
+                        if (p != null && p instanceof Page)
+                        {
+                            StreamingOutput stream = new StreamingOutput() {
+                                @Override
+                                public void write(OutputStream os) throws IOException, WebApplicationException {
+                                    StreamOutput.areaTreeToStream((AreaTree) a, (Page) p, os, mimeType);
+                                }
+                            };
+                            return Response.ok(stream)
+                                    .type(mimeType)
+                                    .build();
+                        }
+                        else
+                        {
+                            return Response.status(Status.NOT_FOUND)
+                                    .type(MediaType.APPLICATION_JSON)
+                                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + " (missing source page): " + iri.toString()))
+                                    .build();
+                        }
+                    }
+                    else
+                    {
+                        return Response.status(Status.NOT_FOUND)
+                                .type(MediaType.APPLICATION_JSON)
+                                .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + " (or couldn't be deserialized): " + iri.toString()))
+                                .build();
+                    }
+                }
+                else
+                {
+                    return Response.status(Status.NOT_FOUND)
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + ": " + iri.toString()))
+                            .build();
+                }
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
+        } catch (IllegalArgumentException e) {
+            return Response.status(Status.BAD_REQUEST)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        } catch (RepositoryException | ServiceException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        }
+    }
+    
     @GET
     @Path("/item/{iri}")
     @Produces(Serialization.JSONLD)
     @PermitAll
     public Response getArtifactJSONLD(@PathParam("iri") String iriValue)
     {
-        return serializeArtifact(iriValue, Serialization.JSONLD);
+        return serializeArtifactModel(iriValue, Serialization.JSONLD);
     }
     
     @GET
@@ -296,7 +394,7 @@ public class ArtifactResource
     @PermitAll
     public Response getArtifactTurtle(@PathParam("iri") String iriValue)
     {
-        return serializeArtifact(iriValue, Serialization.TURTLE);
+        return serializeArtifactModel(iriValue, Serialization.TURTLE);
     }
     
     @GET
@@ -305,7 +403,34 @@ public class ArtifactResource
     @PermitAll
     public Response getArtifactRDFXML(@PathParam("iri") String iriValue)
     {
-        return serializeArtifact(iriValue, Serialization.RDFXML);
+        return serializeArtifactModel(iriValue, Serialization.RDFXML);
+    }
+    
+    @GET
+    @Path("/item/{iri}")
+    @Produces(MediaType.TEXT_XML)
+    @PermitAll
+    public Response getArtifactXML(@PathParam("iri") String iriValue)
+    {
+        return serializeArtifact(iriValue, MediaType.TEXT_XML);
+    }
+    
+    @GET
+    @Path("/item/{iri}")
+    @Produces(MediaType.TEXT_HTML)
+    @PermitAll
+    public Response getArtifactHTML(@PathParam("iri") String iriValue)
+    {
+        return serializeArtifact(iriValue, MediaType.TEXT_HTML);
+    }
+    
+    @GET
+    @Path("/item/{iri}")
+    @Produces("image/png")
+    @PermitAll
+    public Response getArtifactPNG(@PathParam("iri") String iriValue)
+    {
+        return serializeArtifact(iriValue, "image/png");
     }
     
     @DELETE

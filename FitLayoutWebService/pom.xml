@@ -30,6 +30,11 @@
 		<!-- FitLayout modules -->
 		<dependency>
 			<groupId>cz.vutbr.fit.layout</groupId>
+			<artifactId>fitlayout-io</artifactId>
+			<version>${fitlayout.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>cz.vutbr.fit.layout</groupId>
 			<artifactId>fitlayout-render-cssbox</artifactId>
 			<version>${fitlayout.version}</version>
 		</dependency>
