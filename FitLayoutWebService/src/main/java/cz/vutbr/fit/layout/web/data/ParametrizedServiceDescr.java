@@ -28,6 +28,7 @@ public class ParametrizedServiceDescr
     public String description;
     public String consumes;
     public String produces;
+    public String category;
     public Map<String, ParamDescr> params;
     
     public ParametrizedServiceDescr(Service service)
@@ -35,6 +36,7 @@ public class ParametrizedServiceDescr
         id = service.getId();
         name = service.getName();
         description = service.getDescription();
+        category = service.getCategory();
         
         if (service instanceof ParametrizedOperation)
             addParams((ParametrizedOperation) service);

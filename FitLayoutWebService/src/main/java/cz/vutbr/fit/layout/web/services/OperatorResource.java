@@ -16,7 +16,7 @@ import javax.ws.rs.core.Response;
 import cz.vutbr.fit.layout.api.AreaTreeOperator;
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.web.FLConfig;
-import cz.vutbr.fit.layout.web.data.AreaTreeOperatorDescr;
+import cz.vutbr.fit.layout.web.data.ParametrizedServiceDescr;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 
 /**
@@ -41,10 +41,10 @@ public class OperatorResource
     public Response listOperators()
     {
         var ops = sm.findAreaTreeOperators();
-        var result = new ArrayList<AreaTreeOperatorDescr>();
+        var result = new ArrayList<ParametrizedServiceDescr>();
         for (AreaTreeOperator op : ops.values())
         {
-            result.add(new AreaTreeOperatorDescr(op));
+            result.add(new ParametrizedServiceDescr(op));
         }
         return Response.ok(new ResultValue(result)).build();
     }
