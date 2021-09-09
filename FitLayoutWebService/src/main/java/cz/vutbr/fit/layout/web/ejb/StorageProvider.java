@@ -32,6 +32,8 @@ public interface StorageProvider
     
     public List<RepositoryInfo> getRepositoryList(UserInfo user);
     
+    public List<RepositoryInfo> getRepositoryListAll();
+    
     public RepositoryInfo getRepositoryInfo(UserInfo user, String repoId);
 
     public RDFStorage getStorage(UserInfo user, String repoId);

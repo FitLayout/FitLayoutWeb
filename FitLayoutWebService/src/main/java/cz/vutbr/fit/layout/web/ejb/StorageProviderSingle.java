@@ -73,6 +73,12 @@ public class StorageProviderSingle implements StorageProvider
     @Override
     public List<RepositoryInfo> getRepositoryList(UserInfo user)
     {
+        return getRepositoryListAll();
+    }
+
+    @Override
+    public List<RepositoryInfo> getRepositoryListAll()
+    {
         final RepositoryInfo info = new RepositoryInfo(DEFAULT_REPOSITORY, "The default preconfigured repository");
         return List.of(info);
     }

@@ -117,6 +117,17 @@ public class StorageProviderMulti implements StorageProvider
     }
 
     @Override
+    public List<RepositoryInfo> getRepositoryListAll()
+    {
+        if (isReady())
+        {
+            return findAllRepositories();
+        }
+        else
+            return List.of();
+    }
+
+    @Override
     public RepositoryInfo getRepositoryInfo(UserInfo user, String repoId)
     {
         if (isReady())
@@ -312,6 +323,27 @@ public class StorageProviderMulti implements StorageProvider
                     ret.add(repoInfo);
                 else
                     log.debug("Repository {} has no metadata", info.getId()); // repository exists in manager but has no metadata in meta-storage (orphaned?)
+            }
+        }
+        return ret;
+    }
+
+    private List<RepositoryInfo> findAllRepositories()
+    {
+        final var infos = manager.getAllRepositoryInfos();
+        final List<RepositoryInfo> ret = new ArrayList<>(infos.size());
+        for (var info : infos)
+        {
+            log.info("Found: {}", info.getId());
+            int i = info.getId().indexOf(SEP);
+            if (i != -1)
+            {
+                String id = info.getId().substring(i + 1);
+                RepositoryInfo repoInfo = findRepository(id);
+                if (repoInfo != null)
+                    ret.add(repoInfo);
+                else
+                    log.info("Repository {} has no metadata", info.getId()); // repository exists in manager but has no metadata in meta-storage (orphaned?)
             }
         }
         return ret;

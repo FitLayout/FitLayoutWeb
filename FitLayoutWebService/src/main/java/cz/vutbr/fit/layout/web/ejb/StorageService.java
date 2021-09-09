@@ -99,6 +99,11 @@ public class StorageService
         return provider.getStorageStatus(user);
     }
     
+    public List<RepositoryInfo> getAllRepositories()
+    {
+        return provider.getRepositoryListAll();
+    }
+    
     public List<RepositoryInfo> getRepositories(UserInfo user)
     {
         return provider.getRepositoryList(user);

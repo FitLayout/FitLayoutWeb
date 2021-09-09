@@ -8,6 +8,7 @@ package cz.vutbr.fit.layout.web.services;
 import java.util.List;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -136,6 +137,16 @@ public class RepositoryAdminResource
                     .entity(new ResultErrorMessage("Repository id missing"))
                     .build();
         }
+    }
+    
+    @GET
+    @Path("/all")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("admin")
+    public Response getAllRepositories()
+    {
+        List<RepositoryInfo> list = storage.getAllRepositories();
+        return Response.ok(new ResultValue(list)).build();
     }
     
     @GET
