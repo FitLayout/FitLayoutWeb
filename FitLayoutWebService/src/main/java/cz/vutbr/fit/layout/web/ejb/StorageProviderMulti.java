@@ -307,7 +307,11 @@ public class StorageProviderMulti implements StorageProvider
             if (info.getId().startsWith(userId + SEP))
             {
                 String id = info.getId().substring(userId.length() + 1);
-                ret.add(findRepository(id));
+                RepositoryInfo repoInfo = findRepository(id);
+                if (repoInfo != null)
+                    ret.add(repoInfo);
+                else
+                    log.debug("Repository {} has no metadata", info.getId()); // repository exists in manager but has no metadata in meta-storage (orphaned?)
             }
         }
         return ret;
