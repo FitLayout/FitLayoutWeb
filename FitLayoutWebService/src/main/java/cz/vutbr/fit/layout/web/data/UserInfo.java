@@ -7,6 +7,9 @@ package cz.vutbr.fit.layout.web.data;
 
 import java.security.Principal;
 import java.util.Date;
+import java.util.Set;
+
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
 /**
  * 
@@ -24,13 +27,14 @@ public class UserInfo
     public boolean anonymous = true;
     public boolean guest = false;
     public Date expires = null;
+    public Set<String> roles = null;
     
     
     public UserInfo()
     {
     }
 
-    public UserInfo(Principal principal)
+    public UserInfo(Principal principal, JsonWebToken jwt)
     {
         if (principal == null || principal.getName() == null || "ANONYMOUS".equals(principal.getName()))
         {
@@ -44,6 +48,8 @@ public class UserInfo
             setUserId(principal.getName());
             setAnonymous(false);
         }
+        if (jwt != null)
+            roles = jwt.getGroups();
     }
     
     public String getUserId()

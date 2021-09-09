@@ -42,7 +42,7 @@ public class UserService
     @PostConstruct
     public void init()
     {
-        user = new UserInfo(principal);
+        user = new UserInfo(principal, token);
     }
     
     public boolean isAuthorized()
