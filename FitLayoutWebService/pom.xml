@@ -136,9 +136,9 @@
 			<plugin>
 				<groupId>fish.payara.maven.plugins</groupId>
 				<artifactId>payara-micro-maven-plugin</artifactId>
-				<version>1.2.0</version>
+				<version>1.4.0</version>
 				<configuration>
-					<!-- <payaraVersion>${version.payara.micro}</payaraVersion> -->
+					<payaraVersion>5.2021.4</payaraVersion>
 					<deployWar>true</deployWar>
 					<commandLineOptions>
 						<option>
