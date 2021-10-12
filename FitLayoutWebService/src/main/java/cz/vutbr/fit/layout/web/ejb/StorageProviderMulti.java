@@ -58,7 +58,6 @@ public class StorageProviderMulti implements StorageProvider
     private static final String META_REPOSITORY = "SYSTEM-FITLAYOUT";
     private static final int METAFILE_VERSION = 1;
     
-    private boolean autoCreateDefault;
     private String configPath;
     private LocalRepositoryManager manager;
     private ValueFactory vf;
@@ -67,14 +66,8 @@ public class StorageProviderMulti implements StorageProvider
     public StorageProviderMulti(String configPath)
     {
         this.configPath = configPath;
-        autoCreateDefault = false;
         vf = SimpleValueFactory.getInstance();
         init();
-    }
-
-    public boolean isAutoCreateDefault()
-    {
-        return autoCreateDefault;
     }
 
     private void init()
