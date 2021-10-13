@@ -26,6 +26,7 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
+import cz.vutbr.fit.layout.web.ejb.MailerService;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 import cz.vutbr.fit.layout.web.ejb.UserService;
 
@@ -40,6 +41,8 @@ public class RepositoryAdminResource
     private UserService userService;
     @Inject
     private StorageService storage;
+    @Inject
+    private MailerService mailer;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -156,6 +159,30 @@ public class RepositoryAdminResource
     public Response getStatus()
     {
         return Response.ok(new ResultValue(storage.getStatus(userService.getUser()))).build();
+    }
+    
+    @GET
+    @Path("/remind/{email}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    public Response sendRepositoriesReminder(@PathParam("email") String email)
+    {
+        if (email != null)
+        {
+            var list = storage.getRepositoriesForEmail(email);
+            if (!list.isEmpty())
+            {
+                try {
+                    mailer.sendRepositoryInfo(email, list);
+                } catch (Exception e) {
+                    return Response.serverError()
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(new ResultErrorMessage(e.getMessage()))
+                            .build();
+                }
+            }
+        }
+        return Response.ok(new ResultValue("ok")).build();
     }
     
 }

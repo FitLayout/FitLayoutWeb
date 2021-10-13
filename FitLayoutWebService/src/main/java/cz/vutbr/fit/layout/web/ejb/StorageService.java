@@ -6,6 +6,7 @@
 package cz.vutbr.fit.layout.web.ejb;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -102,6 +103,14 @@ public class StorageService
     public List<RepositoryInfo> getAllRepositories()
     {
         return provider.getRepositoryListAll();
+    }
+    
+    public List<RepositoryInfo> getRepositoriesForEmail(String email)
+    {
+        return provider.getRepositoryListAll()
+                .stream()
+                .filter(r -> (r.getEmail() != null && email.trim().equals(r.getEmail())))
+                .collect(Collectors.toList());
     }
     
     public List<RepositoryInfo> getRepositories(UserInfo user)

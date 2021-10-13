@@ -334,7 +334,6 @@ public class StorageProviderMulti implements StorageProvider
         final List<RepositoryInfo> ret = new ArrayList<>(infos.size());
         for (var info : infos)
         {
-            log.info("Found: {}", info.getId());
             int i = info.getId().indexOf(SEP);
             if (i != -1)
             {
