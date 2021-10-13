@@ -24,6 +24,7 @@ public class UserInfo
     public static String ANONYMOUS_USER = "guest";
 
     public String userId;
+    public String email;
     public boolean anonymous = true;
     public boolean guest = false;
     public Date expires = null;
@@ -46,6 +47,7 @@ public class UserInfo
         {
             // authorized users
             setUserId(principal.getName());
+            setEmail(jwt.getClaim("email"));
             setAnonymous(false);
         }
         if (jwt != null)
@@ -60,6 +62,16 @@ public class UserInfo
     public void setUserId(String userId)
     {
         this.userId = userId;
+    }
+
+    public String getEmail()
+    {
+        return email;
+    }
+
+    public void setEmail(String email)
+    {
+        this.email = email;
     }
 
     public boolean isAnonymous()

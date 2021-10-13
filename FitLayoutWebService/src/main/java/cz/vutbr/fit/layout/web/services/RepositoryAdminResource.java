@@ -26,6 +26,7 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
+import cz.vutbr.fit.layout.web.data.UserInfo;
 import cz.vutbr.fit.layout.web.ejb.MailerService;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 import cz.vutbr.fit.layout.web.ejb.UserService;
@@ -65,6 +66,9 @@ public class RepositoryAdminResource
         if (data != null)
         {
             try {
+                UserInfo user = userService.getUser();
+                if (!user.isAnonymous() && user.getEmail() != null)
+                    data.setEmail(user.getEmail()); //force user e-mail for the repository (when available)
                 storage.createRepository(userService.getUser(), data);
                 return Response.ok(new ResultValue(data)).build();
             } catch (RepositoryException e) {
