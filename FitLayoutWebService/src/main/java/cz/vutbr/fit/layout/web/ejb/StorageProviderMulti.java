@@ -134,7 +134,11 @@ public class StorageProviderMulti implements StorageProvider
     @Override
     public RDFStorage getStorage(UserInfo user, String repoId)
     {
-        final Repository repo = manager.getRepository(user.getUserId() + SEP + repoId);
+        Repository repo = manager.getRepository(user.getUserId() + SEP + repoId);
+        //if the repository is not defined for the user, try to find it for anonymous guest
+        if (!user.isAnonymous() && repo == null)
+            repo = manager.getRepository(UserInfo.ANONYMOUS_USER + SEP + repoId);
+        
         if (repo != null)
             return RDFStorage.create(repo);
         else
@@ -291,7 +295,11 @@ public class StorageProviderMulti implements StorageProvider
     
     private RepositoryInfo findUserRepository(String userId, String repoId)
     {
-        final var info = manager.getRepositoryInfo(userId + SEP + repoId);
+        var info = manager.getRepositoryInfo(userId + SEP + repoId);
+        //if the repository is not defined for the user, try to find it for anonymous guest
+        if (info == null && !UserInfo.ANONYMOUS_USER.equals(userId))
+            info = manager.getRepositoryInfo(UserInfo.ANONYMOUS_USER + SEP + repoId);
+        
         if (info != null)
         {
             RepositoryInfo ret = findRepository(repoId);
