@@ -24,6 +24,7 @@ import javax.mail.internet.MimeMessage;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
+import cz.vutbr.fit.layout.web.data.UserInfo;
 
 
 /**
@@ -67,7 +68,7 @@ public class MailerService
         final String subject = productName + " repository list";
         String message = 
                 "Dear " + productName + " user,\n\n" +
-                "someone (probably you) has requested a list of " + productName + " repositories associated.\n" +
+                "someone (probably you) has requested a list of " + productName + " repositories associated\n" +
                 "with your e-mail address. We provide the list below:\n\n";
         
         for (RepositoryInfo item : list)
@@ -75,6 +76,8 @@ public class MailerService
             message += repoUrl + item.getId() + '\n';
             if (item.getDescription() != null && !item.getDescription().isEmpty())
                 message += item.getDescription() + '\n';
+            if (item.getOwner() != null && !UserInfo.ANONYMOUS_USER.equals(item.getOwner()))
+                message += "(requires sing in as " + item.getOwner() + ")\n";
             message += '\n';
         }
         
