@@ -34,6 +34,18 @@ public class RepositoryInfo
         this.description = description;
     }
 
+    public RepositoryInfo(RepositoryInfo src)
+    {
+        id = src.id;
+        description = src.description;
+        version = src.version;
+        email = src.email;
+        owner = src.owner;
+        createdOn = src.createdOn;
+        accessedOn = src.accessedOn;
+        expires = src.expires;
+    }
+
     public String getId()
     {
         return id;
@@ -112,6 +124,12 @@ public class RepositoryInfo
     public void setOwner(String owner)
     {
         this.owner = owner;
+    }
+    
+    public void updateWith(RepositoryInfo other)
+    {
+        setDescription(other.getDescription());
+        setEmail(other.getEmail());
     }
     
 }

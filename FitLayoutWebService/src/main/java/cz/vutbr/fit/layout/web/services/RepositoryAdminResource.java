@@ -14,6 +14,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -97,6 +98,39 @@ public class RepositoryAdminResource
         {
             try {
                 var info = storage.getRepositoryInfo(userService.getUser(), repositoryId);
+                if (info != null)
+                    return Response.ok(new ResultValue(info)).build();
+                else
+                    return Response.status(Status.NOT_FOUND)
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                            .build();
+            } catch (RepositoryException e) {
+                return Response.serverError()
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(e.getMessage()))
+                        .build();
+            }
+        }
+        else
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage("Repository id missing"))
+                    .build();
+        }
+    }
+    
+    @PUT
+    @Path("/{repoId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    public Response updateRepositoryInfo(@PathParam("repoId") String repositoryId, RepositoryInfo data)
+    {
+        if (repositoryId != null)
+        {
+            try {
+                var info = storage.updateRepository(userService.getUser(), repositoryId, data);
                 if (info != null)
                     return Response.ok(new ResultValue(info)).build();
                 else

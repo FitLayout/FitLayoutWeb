@@ -43,6 +43,9 @@ public interface StorageProvider
     public void createRepository(UserInfo user, RepositoryInfo info)
         throws RepositoryException;
     
+    public RepositoryInfo updateRepository(UserInfo user, String repoId, RepositoryInfo info)
+            throws RepositoryException;
+        
     public void deleteRepository(UserInfo user, String repoId)
         throws RepositoryException;
 

@@ -181,26 +181,38 @@ public class StorageProviderMulti implements StorageProvider
             conf = new RepositoryConfig(id, info.getDescription(), new SailRepositoryConfig(new NativeStoreConfig()));
         manager.addRepositoryConfig(conf);
         Repository repo = manager.getRepository(id);
-        
-        final IRI iri = repoIRI(info.getId());
-        Model metadata = new LinkedHashModel();
-        metadata.add(iri, REPOSITORY.uuid, vf.createLiteral(info.getId()));
-        metadata.add(iri, REPOSITORY.version, vf.createLiteral(METAFILE_VERSION));
-        metadata.add(iri, REPOSITORY.createdOn, vf.createLiteral(new Date()));
-        metadata.add(iri, REPOSITORY.accessedOn, vf.createLiteral(new Date()));
-        if (info.getExpires() != null)
-            metadata.add(iri, REPOSITORY.expires, vf.createLiteral(info.getExpires()));
-        if (info.getEmail() != null)
-            metadata.add(iri, REPOSITORY.email, vf.createLiteral(info.getEmail()));
-        if (owner != null)
-            metadata.add(iri, REPOSITORY.owner, vf.createLiteral(owner));
-        if (info.getDescription() != null)
-            metadata.add(iri, REPOSITORY.name, vf.createLiteral(info.getDescription()));
-        addMetadata(metadata);
+     
+        RepositoryInfo storedInfo = new RepositoryInfo(info);
+        storedInfo.setAccessedOn(new Date());
+        storedInfo.setCreatedOn(new Date());
+        storedInfo.setOwner(owner);
+        storeRepositoryInfo(storedInfo);
         
         log.info("Created {}", repo);
     }
-    
+
+    @Override
+    public RepositoryInfo updateRepository(UserInfo user, String repoId, RepositoryInfo info)
+            throws RepositoryException
+    {
+        if (isReady())
+        {
+            RepositoryInfo current = findUserRepository(user.getUserId(), repoId);
+            if (current != null)
+            {
+                current.updateWith(info);
+                final IRI iri = repoIRI(repoId);
+                deleteRepositoryInfo(iri);
+                storeRepositoryInfo(current);
+                return current;
+            }
+            else
+                return null;
+        }
+        else
+            return null;
+    }
+
     @Override
     public void deleteRepository(UserInfo user, String repoId)
             throws RepositoryException
@@ -232,11 +244,9 @@ public class StorageProviderMulti implements StorageProvider
         log.info("Deleting repository {}", id);
         manager.removeRepository(id);
         final IRI iri = repoIRI(uuid);
-        try (RepositoryConnection con = getMetaRepository().getConnection()) {
-            con.remove(iri, null, null);
-        }
+        deleteRepositoryInfo(iri);
     }
-    
+
     private RepositoryInfo findRepository(String uuid)
     {
         try (RepositoryConnection con = getMetaRepository().getConnection()) {
@@ -247,50 +257,6 @@ public class StorageProviderMulti implements StorageProvider
             else
                 return null;
         }
-    }
-    
-    private RepositoryInfo loadRepositoryInfo(RepositoryConnection con, IRI repositoryIri)
-    {
-        RepositoryInfo ret = new RepositoryInfo();
-        final RepositoryResult<Statement> statements = con.getStatements(repositoryIri, null, null);
-        for (Statement st : statements)
-        {
-            final IRI pred = st.getPredicate();
-            final Value value = st.getObject();
-            
-            if (REPOSITORY.uuid.equals(pred))
-            {
-                ret.setId(value.stringValue());
-            }
-            else if (REPOSITORY.accessedOn.equals(pred))
-            {
-                if (value instanceof Literal)
-                    ret.setAccessedOn(((Literal) value).calendarValue().toGregorianCalendar().getTime());
-            }
-            else if (REPOSITORY.createdOn.equals(pred))
-            {
-                if (value instanceof Literal)
-                    ret.setCreatedOn(((Literal) value).calendarValue().toGregorianCalendar().getTime());
-            }
-            else if (REPOSITORY.expires.equals(pred))
-            {
-                if (value instanceof Literal)
-                    ret.setExpires(((Literal) value).calendarValue().toGregorianCalendar().getTime());
-            }
-            else if (REPOSITORY.email.equals(pred))
-            {
-                ret.setEmail(value.stringValue());
-            }
-            else if (REPOSITORY.owner.equals(pred))
-            {
-                ret.setOwner(value.stringValue());
-            }
-            else if (REPOSITORY.name.equals(pred))
-            {
-                ret.setDescription(value.stringValue());
-            }
-        }
-        return ret;
     }
     
     private RepositoryInfo findUserRepository(String userId, String repoId)
@@ -365,6 +331,78 @@ public class StorageProviderMulti implements StorageProvider
     {
         manager.shutDown();
         manager = null;
+    }
+    
+    //=====================================================================================
+    
+    private RepositoryInfo loadRepositoryInfo(RepositoryConnection con, IRI repositoryIri)
+    {
+        RepositoryInfo ret = new RepositoryInfo();
+        final RepositoryResult<Statement> statements = con.getStatements(repositoryIri, null, null);
+        for (Statement st : statements)
+        {
+            final IRI pred = st.getPredicate();
+            final Value value = st.getObject();
+            
+            if (REPOSITORY.uuid.equals(pred))
+            {
+                ret.setId(value.stringValue());
+            }
+            else if (REPOSITORY.accessedOn.equals(pred))
+            {
+                if (value instanceof Literal)
+                    ret.setAccessedOn(((Literal) value).calendarValue().toGregorianCalendar().getTime());
+            }
+            else if (REPOSITORY.createdOn.equals(pred))
+            {
+                if (value instanceof Literal)
+                    ret.setCreatedOn(((Literal) value).calendarValue().toGregorianCalendar().getTime());
+            }
+            else if (REPOSITORY.expires.equals(pred))
+            {
+                if (value instanceof Literal)
+                    ret.setExpires(((Literal) value).calendarValue().toGregorianCalendar().getTime());
+            }
+            else if (REPOSITORY.email.equals(pred))
+            {
+                ret.setEmail(value.stringValue());
+            }
+            else if (REPOSITORY.owner.equals(pred))
+            {
+                ret.setOwner(value.stringValue());
+            }
+            else if (REPOSITORY.name.equals(pred))
+            {
+                ret.setDescription(value.stringValue());
+            }
+        }
+        return ret;
+    }
+    
+    private void storeRepositoryInfo(RepositoryInfo info)
+    {
+        final IRI iri = repoIRI(info.getId());
+        final Model metadata = new LinkedHashModel();
+        metadata.add(iri, REPOSITORY.uuid, vf.createLiteral(info.getId()));
+        metadata.add(iri, REPOSITORY.version, vf.createLiteral(METAFILE_VERSION));
+        metadata.add(iri, REPOSITORY.createdOn, vf.createLiteral(info.getCreatedOn()));
+        metadata.add(iri, REPOSITORY.accessedOn, vf.createLiteral(info.getAccessedOn()));
+        if (info.getExpires() != null)
+            metadata.add(iri, REPOSITORY.expires, vf.createLiteral(info.getExpires()));
+        if (info.getEmail() != null)
+            metadata.add(iri, REPOSITORY.email, vf.createLiteral(info.getEmail()));
+        if (info.getOwner() != null)
+            metadata.add(iri, REPOSITORY.owner, vf.createLiteral(info.getOwner()));
+        if (info.getDescription() != null)
+            metadata.add(iri, REPOSITORY.name, vf.createLiteral(info.getDescription()));
+        addMetadata(metadata);
+    }
+    
+    private void deleteRepositoryInfo(final IRI repositoryIri)
+    {
+        try (RepositoryConnection con = getMetaRepository().getConnection()) {
+            con.remove(repositoryIri, null, null);
+        }
     }
     
     //=====================================================================================

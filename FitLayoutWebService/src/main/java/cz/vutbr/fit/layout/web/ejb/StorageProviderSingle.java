@@ -121,6 +121,14 @@ public class StorageProviderSingle implements StorageProvider
     }
 
     @Override
+    public RepositoryInfo updateRepository(UserInfo user, String repoId, RepositoryInfo info)
+            throws RepositoryException
+    {
+        // nothing can be updated with the default repository
+        return getRepositoryInfo(user, repoId);
+    }
+
+    @Override
     public void deleteRepository(UserInfo user, String repoId)
         throws RepositoryException
     {

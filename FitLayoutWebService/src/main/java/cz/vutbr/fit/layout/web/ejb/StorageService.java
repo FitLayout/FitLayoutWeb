@@ -135,6 +135,12 @@ public class StorageService
         provider.createRepository(user, data);
     }
     
+    public RepositoryInfo updateRepository(UserInfo user, String repoId, RepositoryInfo info)
+            throws RepositoryException
+    {
+        return provider.updateRepository(user, repoId, info);
+    }
+    
     public void deleteRepository(UserInfo user, String repoId)
             throws RepositoryException
     {
