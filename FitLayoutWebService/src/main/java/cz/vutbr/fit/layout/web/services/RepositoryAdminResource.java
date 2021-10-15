@@ -179,9 +179,10 @@ public class RepositoryAdminResource
                 try {
                     mailer.sendRepositoryInfo(email, list);
                 } catch (Exception e) {
+                    e.printStackTrace();
                     return Response.serverError()
                             .type(MediaType.APPLICATION_JSON)
-                            .entity(new ResultErrorMessage(e.getMessage()))
+                            .entity(new ResultErrorMessage("E-mail sending failed"))
                             .build();
                 }
             }
