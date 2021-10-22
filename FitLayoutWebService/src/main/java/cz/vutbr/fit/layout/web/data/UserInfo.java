@@ -10,11 +10,14 @@ import java.util.Date;
 import java.util.Set;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 /**
  * 
  * @author burgetr
  */
+@Schema(name="UserInfo", description="Current user information")
 public class UserInfo
 {
     /**
@@ -27,7 +30,9 @@ public class UserInfo
     public String email;
     public boolean anonymous = true;
     public boolean guest = false;
+    @Schema(type = SchemaType.STRING)
     public Date expires = null;
+    @Schema(type = SchemaType.ARRAY)
     public Set<String> roles = null;
     
     

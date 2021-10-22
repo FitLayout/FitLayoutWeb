@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -27,6 +28,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.Response.Status;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
@@ -51,6 +58,7 @@ import cz.vutbr.fit.layout.web.StreamOutput;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.ServiceParams;
+import cz.vutbr.fit.layout.web.data.UserInfo;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 import cz.vutbr.fit.layout.web.ejb.UserService;
 
@@ -67,6 +75,7 @@ public class ArtifactResource
     private StorageService storage;
     
     @PathParam("repoId")
+    @Parameter(description = "The ID of the repository to use", required = true)
     private String repoId;
     
     /**
@@ -120,35 +129,24 @@ public class ArtifactResource
     
     @GET
     @Path("/")
-    @Produces(Serialization.JSONLD)
+    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
     @PermitAll
-    public Response getArtifactsInfoJSON()
+    @Operation(summary = "Retrieves information about all artifacts in the repository.")
+    @APIResponse(responseCode = "200", description = "List of artifact details")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    public Response getArtifactsInfo(@HeaderParam("Accept") String accept)
     {
-        return serializeArtifactInfo(null, Serialization.JSONLD);
-    }
-    
-    @GET
-    @Path("/")
-    @Produces(Serialization.TURTLE)
-    @PermitAll
-    public Response getArtifactsInfoTurtle()
-    {
-        return serializeArtifactInfo(null, Serialization.TURTLE);
-    }
-    
-    @GET
-    @Path("/")
-    @Produces(Serialization.RDFXML)
-    @PermitAll
-    public Response getArtifactsInfoRDFXML()
-    {
-        return serializeArtifactInfo(null, Serialization.RDFXML);
+        return serializeArtifactInfo(null, accept);
     }
     
     @GET
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets a list of artifact IRIs.")
+    @APIResponse(responseCode = "200", description = "List of artifact IRIs",
+            content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = String.class)))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response listArtifacts()
     {
         try {
@@ -176,6 +174,10 @@ public class ArtifactResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Creates a new artifact by invoking a service.")
+    @APIResponse(responseCode = "200", description = "The IRI of the new artifact created",
+            content = @Content(schema = @Schema(type = SchemaType.STRING)))    
+    @APIResponse(responseCode = "404", description = "Repository or service with the given ID not found")    
     public Response create(ServiceParams params)
     {
         try {
