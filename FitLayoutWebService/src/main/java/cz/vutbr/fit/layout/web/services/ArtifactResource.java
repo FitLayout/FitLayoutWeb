@@ -58,7 +58,6 @@ import cz.vutbr.fit.layout.web.StreamOutput;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.ServiceParams;
-import cz.vutbr.fit.layout.web.data.UserInfo;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 import cz.vutbr.fit.layout.web.ejb.UserService;
 
@@ -349,7 +348,7 @@ public class ArtifactResource
                     {
                         return Response.status(Status.NOT_FOUND)
                                 .type(MediaType.APPLICATION_JSON)
-                                .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + " (or couldn't be deserialized): " + iri.toString()))
+                                .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + " (or couldn't be serialized): " + iri.toString()))
                                 .build();
                     }
                 }
@@ -383,62 +382,32 @@ public class ArtifactResource
     
     @GET
     @Path("/item/{iri}")
-    @Produces(Serialization.JSONLD)
+    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML,
+        MediaType.TEXT_XML, MediaType.TEXT_HTML, "image/png"})
     @PermitAll
-    public Response getArtifactJSONLD(@PathParam("iri") String iriValue)
+    @Operation(summary = "Gets a complete artifact identified by its IRI")
+    @APIResponse(responseCode = "200", description = "The complete artifact data")    
+    @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found or could not be serialized")    
+    public Response getArtifactJSONLD(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
     {
-        return serializeArtifactModel(iriValue, Serialization.JSONLD);
-    }
-    
-    @GET
-    @Path("/item/{iri}")
-    @Produces(Serialization.TURTLE)
-    @PermitAll
-    public Response getArtifactTurtle(@PathParam("iri") String iriValue)
-    {
-        return serializeArtifactModel(iriValue, Serialization.TURTLE);
-    }
-    
-    @GET
-    @Path("/item/{iri}")
-    @Produces(Serialization.RDFXML)
-    @PermitAll
-    public Response getArtifactRDFXML(@PathParam("iri") String iriValue)
-    {
-        return serializeArtifactModel(iriValue, Serialization.RDFXML);
-    }
-    
-    @GET
-    @Path("/item/{iri}")
-    @Produces(MediaType.TEXT_XML)
-    @PermitAll
-    public Response getArtifactXML(@PathParam("iri") String iriValue)
-    {
-        return serializeArtifact(iriValue, MediaType.TEXT_XML);
-    }
-    
-    @GET
-    @Path("/item/{iri}")
-    @Produces(MediaType.TEXT_HTML)
-    @PermitAll
-    public Response getArtifactHTML(@PathParam("iri") String iriValue)
-    {
-        return serializeArtifact(iriValue, MediaType.TEXT_HTML);
-    }
-    
-    @GET
-    @Path("/item/{iri}")
-    @Produces("image/png")
-    @PermitAll
-    public Response getArtifactPNG(@PathParam("iri") String iriValue)
-    {
-        return serializeArtifact(iriValue, "image/png");
+        switch (accept)
+        {
+            case Serialization.JSONLD:
+            case Serialization.TURTLE:
+            case Serialization.RDFXML:
+                return serializeArtifactModel(iriValue, accept);
+            default:
+                return serializeArtifact(iriValue, accept);
+        }
     }
     
     @DELETE
     @Path("/item/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Deletes an artifact identified by its IRI")
+    @APIResponse(responseCode = "200", description = "Artifact deleted")    
+    @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found")    
     public Response removeArtifact(@PathParam("iri") String iriValue)
     {
         try {
@@ -467,6 +436,9 @@ public class ArtifactResource
     @Path("/clear")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Clears the repository - deletes all artifacts and metadata")
+    @APIResponse(responseCode = "200", description = "Repository cleared")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response removeAll()
     {
         try {
@@ -492,29 +464,14 @@ public class ArtifactResource
     
     @GET
     @Path("/info/{iri}")
-    @Produces(Serialization.JSONLD)
+    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
     @PermitAll
-    public Response getArtifactInfoJSON(@PathParam("iri") String iriValue)
+    @Operation(summary = "Retrieves information about an artifact identified by its IRI.")
+    @APIResponse(responseCode = "200", description = "Artifact details")    
+    @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found")    
+    public Response getArtifactInfoJSON(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
     {
-        return serializeArtifactInfo(iriValue, Serialization.JSONLD);
-    }
-    
-    @GET
-    @Path("/info/{iri}")
-    @Produces(Serialization.TURTLE)
-    @PermitAll
-    public Response getArtifactInfoTurtle(@PathParam("iri") String iriValue)
-    {
-        return serializeArtifactInfo(iriValue, Serialization.TURTLE);
-    }
-    
-    @GET
-    @Path("/info/{iri}")
-    @Produces(Serialization.RDFXML)
-    @PermitAll
-    public Response getArtifactInfoRDFXML(@PathParam("iri") String iriValue)
-    {
-        return serializeArtifactInfo(iriValue, Serialization.RDFXML);
+        return serializeArtifactInfo(iriValue, accept);
     }
     
     //@GET
