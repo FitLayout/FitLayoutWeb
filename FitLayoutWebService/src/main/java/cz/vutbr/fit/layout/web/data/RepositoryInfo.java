@@ -7,20 +7,31 @@ package cz.vutbr.fit.layout.web.data;
 
 import java.util.Date;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
 /**
  * Basic repository information transferred via the API.
  * 
  * @author burgetr
  */
+@Schema(name="RepositoryInfo", description="Information about an artifact repository")
 public class RepositoryInfo
 {
+    @Schema(description="Repository ID", required = true)
     public String id;
+    @Schema(description="Repository description", required = false)
     public String description;
+    @Schema(description="Metadata schema version", required = false)
     public String version;
+    @Schema(description="Creator's e-mail", required = false)
     public String email;
+    @Schema(description="Owner ID", required = true)
     public String owner;
+    @Schema(description="Creation date", required = false)
     public Date createdOn;
+    @Schema(description="Last access date", required = false)
     public Date accessedOn;
+    @Schema(description="Expiration date", required = false)
     public Date expires;
     
     

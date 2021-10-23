@@ -74,7 +74,7 @@ public class ArtifactResource
     private StorageService storage;
     
     @PathParam("repoId")
-    @Parameter(description = "The ID of the repository to use", required = true)
+    @Parameter(description = "The ID of the artifact repository to use", required = true)
     private String repoId;
     
     /**
@@ -388,7 +388,7 @@ public class ArtifactResource
     @Operation(summary = "Gets a complete artifact identified by its IRI")
     @APIResponse(responseCode = "200", description = "The complete artifact data")    
     @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found or could not be serialized")    
-    public Response getArtifactJSONLD(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
+    public Response getArtifact(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
     {
         switch (accept)
         {

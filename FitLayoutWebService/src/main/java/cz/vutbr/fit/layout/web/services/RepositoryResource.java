@@ -21,11 +21,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
+
+import com.sun.net.httpserver.Authenticator.Result;
 
 import cz.vutbr.fit.layout.api.IRIDecoder;
 import cz.vutbr.fit.layout.ontology.BOX;
@@ -37,6 +45,7 @@ import cz.vutbr.fit.layout.web.data.QuadrupleData;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.SelectQueryResult;
+import cz.vutbr.fit.layout.web.data.SelectQueryResult.ResultBinding;
 import cz.vutbr.fit.layout.web.data.SubjectDescriptionResult;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 import cz.vutbr.fit.layout.web.ejb.UserService;
@@ -55,12 +64,15 @@ public class RepositoryResource
     private StorageService storage;
 
     @PathParam("repoId")
+    @Parameter(description = "The ID of the artifact repository to use", required = true)
     private String repoId;
     
     @GET
     @Path("/touch")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Updates the last access time of the given repository to current time")
+    @APIResponse(responseCode = "200", description = "Repository touched")    
     public Response touch()
     {
         storage.touch(userService.getUser(), repoId);
@@ -72,6 +84,11 @@ public class RepositoryResource
     @Consumes(Serialization.SPARQL_QUERY)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Executes a SPARQL SELECT query on the underlying RDF repository")
+    @APIResponse(responseCode = "200", description = "SPARQL query result",
+        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = SelectQueryResult.class)))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "500", description = "Query evaluation error")    
     public Response repositoryQuery(String query)
     {
         try {
@@ -101,6 +118,10 @@ public class RepositoryResource
     @Path("/subject/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets all triples for the given subject IRI")
+    @APIResponse(responseCode = "200", description = "Select query result assigning (p)redicate and (v)alue",
+        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = SelectQueryResult.class)))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response querySubject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
         try {
@@ -132,6 +153,10 @@ public class RepositoryResource
     @Path("/object/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets all triples for the given object IRI")
+    @APIResponse(responseCode = "200", description = "Select query result assigning (p)redicate and (v)alue",
+        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = SelectQueryResult.class)))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response queryObject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
         try {
@@ -163,6 +188,10 @@ public class RepositoryResource
     @Path("/subject/{subjIri}/{propertyIri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets the property value for the given subject and property IRIs")
+    @APIResponse(responseCode = "200", description = "Select query result assigning (p)redicate and (v)alue",
+        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = ResultBinding.class)))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response getSubjectValue(@PathParam("subjIri") String subjIriValue, @PathParam("propertyIri") String propertyIriValue)
     {
         try {
@@ -207,6 +236,10 @@ public class RepositoryResource
     @Path("/type/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets the assigned rdf:type IRI for the given subject IRI")
+    @APIResponse(responseCode = "200", description = "Type IRI or 'unknown'",
+        content = @Content(schema = @Schema(type = SchemaType.STRING)))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response getSubjectType(@PathParam("iri") String iriValue)
     {
         try {
@@ -239,6 +272,10 @@ public class RepositoryResource
     @Path("/describe/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets the RDF description for the given subject IRI")
+    @APIResponse(responseCode = "200", description = "Subject description",
+        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = SubjectDescriptionResult.class)))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response describeSubject(@PathParam("iri") String iriValue)
     {
         try {
@@ -271,6 +308,10 @@ public class RepositoryResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Adds a new quadruple to the repository")
+    @APIResponse(responseCode = "200", description = "The quadruple added",
+        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = QuadrupleData.class)))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response addQuadruple(QuadrupleData quad)
     {
         if (quad.isOk())
@@ -319,6 +360,10 @@ public class RepositoryResource
     @Path("/checkRepo")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Checks the repository whether it exists and is properly initialized")
+    @APIResponse(responseCode = "200", description = "The quadruple added",
+        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = Result.class)))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response checkRepo()
     {
         final RDFStorage rdfst = storage.getStorage(userService.getUser(), repoId);
@@ -343,6 +388,9 @@ public class RepositoryResource
     @Path("/initRepo")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Initializes an empty repository with the necessary RDF metadata (schemas)")
+    @APIResponse(responseCode = "200", description = "Repository initialized")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response initRepo()
     {
         final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);

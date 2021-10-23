@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.security.PermitAll;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -20,6 +21,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.rdf4j.model.Model;
 
 import cz.vutbr.fit.layout.api.ArtifactService;
@@ -55,6 +61,9 @@ public class ServiceResource
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets a list of available artifact services.")
+    @APIResponse(responseCode = "200", description = "List of service descriptions",
+            content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = ArtifactServiceDescr.class)))    
     public Response getServiceList()
     {
         var services = sm.findArtifactSevices().values();
@@ -68,28 +77,24 @@ public class ServiceResource
     
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(Serialization.JSONLD)
+    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
     @PermitAll
-    public Response invokeJSON(ServiceParams params)
+    @Operation(summary = "Invokes a service and returns the resulting artifact")
+    @APIResponse(responseCode = "200", description = "The complete artifact data")    
+    public Response invoke(@HeaderParam("Accept") String accept, ServiceParams params)
     {
-        return invoke(params, Serialization.JSONLD);
+        return invoke(params, accept);
     }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(Serialization.TURTLE)
-    @PermitAll
-    public Response invokeTurtle(ServiceParams params)
-    {
-        return invoke(params, Serialization.TURTLE);
-    }
-    
     //===========================================================================================
     
     @GET
     @Path("/config")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets the default configuration of an artifact service.")
+    @APIResponse(responseCode = "200", description = "Service configuration",
+            content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = ServiceParams.class)))    
     public Response getServiceConfig(@QueryParam("id") String serviceId)
     {
         ParametrizedOperation op = sm.findParmetrizedService(serviceId);
@@ -110,6 +115,7 @@ public class ServiceResource
     @GET
     @Path("/ping")
     @PermitAll
+    @Operation(summary = "Returns 'ok'.")
     public String ping()
     {
         return "ok";

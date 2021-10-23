@@ -22,11 +22,17 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
+import cz.vutbr.fit.layout.web.data.StorageStatus;
 import cz.vutbr.fit.layout.web.data.UserInfo;
 import cz.vutbr.fit.layout.web.ejb.MailerService;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
@@ -49,6 +55,9 @@ public class RepositoryAdminResource
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets a list of available repositories for current user.")
+    @APIResponse(responseCode = "200", description = "List of repository information",
+            content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = RepositoryInfo.class)))    
     public Response listRepositories()
     {
         var user = userService.getUser();
@@ -62,6 +71,9 @@ public class RepositoryAdminResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Creates a new repository.")
+    @APIResponse(responseCode = "200", description = "The new repository description",
+            content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = RepositoryInfo.class)))    
     public Response createRepository(RepositoryInfo data)
     {
         if (data != null)
@@ -92,6 +104,10 @@ public class RepositoryAdminResource
     @Path("/{repoId}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets information about a repository identified by its ID.")
+    @APIResponse(responseCode = "200", description = "Selected repository information",
+            content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = RepositoryInfo.class)))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response getRepositoryInfo(@PathParam("repoId") String repositoryId)
     {
         if (repositoryId != null)
@@ -125,6 +141,10 @@ public class RepositoryAdminResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets information about a repository identified by its ID.")
+    @APIResponse(responseCode = "200", description = "The updated repository description",
+            content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = RepositoryInfo.class)))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response updateRepositoryInfo(@PathParam("repoId") String repositoryId, RepositoryInfo data)
     {
         if (repositoryId != null)
@@ -157,6 +177,9 @@ public class RepositoryAdminResource
     @Path("/{repoId}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Deletes a repository identified by its ID.")
+    @APIResponse(responseCode = "200", description = "Repository deleted")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response deleteRepository(@PathParam("repoId") String repositoryId)
     {
         if (repositoryId != null)
@@ -184,6 +207,9 @@ public class RepositoryAdminResource
     @Path("/all")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed("admin")
+    @Operation(summary = "Gets a list of all available repositories (admin only).")
+    @APIResponse(responseCode = "200", description = "List of repository information",
+            content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = RepositoryInfo.class)))    
     public Response getAllRepositories()
     {
         List<RepositoryInfo> list = storage.getAllRepositories();
@@ -194,6 +220,9 @@ public class RepositoryAdminResource
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Gets overall storage status.")
+    @APIResponse(responseCode = "200", description = "Selected repository information",
+            content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = StorageStatus.class)))    
     public Response getStatus()
     {
         return Response.ok(new ResultValue(storage.getStatus(userService.getUser()))).build();
@@ -203,6 +232,8 @@ public class RepositoryAdminResource
     @Path("/remind/{email}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Operation(summary = "Sends an e-mail reminder containing all repositories that have the given e-mail assigned")
+    @APIResponse(responseCode = "200", description = "E-mail sent (or nothing set if no repository is assigned to the given e-mail")    
     public Response sendRepositoriesReminder(@PathParam("email") String email)
     {
         if (email != null)
