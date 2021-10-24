@@ -34,6 +34,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
@@ -132,9 +133,16 @@ public class ArtifactResource
     @Path("/")
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
     @PermitAll
-    @Operation(summary = "Retrieves information about all artifacts in the repository.")
-    @APIResponse(responseCode = "200", description = "List of artifact details")    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @Operation(summary = "Retrieves information about all artifacts in the repository (artifact contents not included).")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200-JSONLD", description = "The artifacts RDF description serialized in JSON-LD", 
+                    content = @Content(mediaType = Serialization.JSONLD)),    
+            @APIResponse(responseCode = "200-TURTLE", description = "The artifacts RDF description serialized in TURTLE",
+                    content = @Content(mediaType = Serialization.TURTLE)),   
+            @APIResponse(responseCode = "200-RDFXML", description = "The artifacts RDF description serialized in RDF/XML",
+                    content = @Content(mediaType = Serialization.RDFXML)),
+            @APIResponse(responseCode = "404", description = "Repository with the given ID not found or could not be serialized")
+        })
     public Response getArtifactsInfo(@HeaderParam("Accept") String accept)
     {
         return serializeArtifactInfo(null, accept);
@@ -387,9 +395,22 @@ public class ArtifactResource
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML,
         MediaType.TEXT_XML, MediaType.TEXT_HTML, "image/png"})
     @PermitAll
-    @Operation(summary = "Gets a complete artifact identified by its IRI")
-    @APIResponse(responseCode = "200", description = "The complete artifact data")    
-    @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found or could not be serialized")    
+    @Operation(summary = "Gets a complete artifact including its contents identified by its IRI")
+    @APIResponses(value = {
+        @APIResponse(responseCode = "200-JSONLD", description = "The complete artifact RDF description serialized in JSON-LD", 
+                content = @Content(mediaType = Serialization.JSONLD)),    
+        @APIResponse(responseCode = "200-TURTLE", description = "The complete artifact RDF description serialized in TURTLE",
+                content = @Content(mediaType = Serialization.TURTLE)),   
+        @APIResponse(responseCode = "200-RDFXML", description = "The complete artifact RDF description serialized in RDF/XML",
+                content = @Content(mediaType = Serialization.RDFXML)),
+        @APIResponse(responseCode = "200-XML", description = "The complete artifact serialized in XML",
+                content = @Content(mediaType = MediaType.TEXT_XML)),
+        @APIResponse(responseCode = "200-HTML", description = "The complete artifact serialized in HTML",
+                content = @Content(mediaType = MediaType.TEXT_HTML)),
+        @APIResponse(responseCode = "200-PNG", description = "The complete artifact in a PNG image",
+                content = @Content(mediaType = "image/png")),   
+        @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found or could not be serialized")
+    })
     public Response getArtifact(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
     {
         switch (accept)
@@ -468,10 +489,17 @@ public class ArtifactResource
     @Path("/info/{iri}")
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
     @PermitAll
-    @Operation(summary = "Retrieves information about an artifact identified by its IRI.")
-    @APIResponse(responseCode = "200", description = "Artifact details")    
-    @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found")    
-    public Response getArtifactInfoJSON(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
+    @Operation(summary = "Retrieves information about an artifact identified by its IRI (artifact content not included).")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200-JSONLD", description = "The artifact RDF description serialized in JSON-LD", 
+                    content = @Content(mediaType = Serialization.JSONLD)),    
+            @APIResponse(responseCode = "200-TURTLE", description = "The artifact RDF description serialized in TURTLE",
+                    content = @Content(mediaType = Serialization.TURTLE)),   
+            @APIResponse(responseCode = "200-RDFXML", description = "The artifact RDF description serialized in RDF/XML",
+                    content = @Content(mediaType = Serialization.RDFXML)),
+            @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found or could not be serialized")
+        })
+    public Response getArtifactInfo(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
     {
         return serializeArtifactInfo(iriValue, accept);
     }

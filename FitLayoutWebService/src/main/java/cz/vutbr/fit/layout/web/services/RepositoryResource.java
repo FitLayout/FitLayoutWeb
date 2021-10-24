@@ -46,7 +46,6 @@ import cz.vutbr.fit.layout.web.data.QuadrupleData;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.SelectQueryResult;
-import cz.vutbr.fit.layout.web.data.SelectQueryResult.ResultBinding;
 import cz.vutbr.fit.layout.web.data.SubjectDescriptionResult;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 import cz.vutbr.fit.layout.web.ejb.UserService;
