@@ -27,6 +27,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
@@ -56,6 +57,7 @@ import cz.vutbr.fit.layout.web.ejb.UserService;
  * @author burgetr
  */
 @Path("r/{repoId}/repository")
+@Tag(name = "repository", description = "RDF repository opertations")
 public class RepositoryResource
 {
     @Inject
@@ -86,7 +88,7 @@ public class RepositoryResource
     @PermitAll
     @Operation(summary = "Executes a SPARQL SELECT query on the underlying RDF repository")
     @APIResponse(responseCode = "200", description = "SPARQL query result",
-        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = SelectQueryResult.class)))    
+        content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     @APIResponse(responseCode = "500", description = "Query evaluation error")    
     public Response repositoryQuery(String query)
@@ -120,7 +122,7 @@ public class RepositoryResource
     @PermitAll
     @Operation(summary = "Gets all triples for the given subject IRI")
     @APIResponse(responseCode = "200", description = "Select query result assigning (p)redicate and (v)alue",
-        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = SelectQueryResult.class)))    
+        content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response querySubject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
@@ -154,8 +156,8 @@ public class RepositoryResource
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(summary = "Gets all triples for the given object IRI")
-    @APIResponse(responseCode = "200", description = "Select query result assigning (p)redicate and (v)alue",
-        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = SelectQueryResult.class)))    
+    @APIResponse(responseCode = "200", description = "Select query result assigning (v)alue and (p)redicate",
+        content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response queryObject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
@@ -190,7 +192,7 @@ public class RepositoryResource
     @PermitAll
     @Operation(summary = "Gets the property value for the given subject and property IRIs")
     @APIResponse(responseCode = "200", description = "Select query result assigning (p)redicate and (v)alue",
-        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = ResultBinding.class)))    
+        content = @Content(schema = @Schema(ref = "ResultBinding")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response getSubjectValue(@PathParam("subjIri") String subjIriValue, @PathParam("propertyIri") String propertyIriValue)
     {
@@ -274,7 +276,7 @@ public class RepositoryResource
     @PermitAll
     @Operation(summary = "Gets the RDF description for the given subject IRI")
     @APIResponse(responseCode = "200", description = "Subject description",
-        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = SubjectDescriptionResult.class)))    
+        content = @Content(schema = @Schema(ref = "SubjectDescriptionResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response describeSubject(@PathParam("iri") String iriValue)
     {
@@ -310,7 +312,7 @@ public class RepositoryResource
     @PermitAll
     @Operation(summary = "Adds a new quadruple to the repository")
     @APIResponse(responseCode = "200", description = "The quadruple added",
-        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = QuadrupleData.class)))    
+        content = @Content(schema = @Schema(ref = "QuadrupleData")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response addQuadruple(QuadrupleData quad)
     {

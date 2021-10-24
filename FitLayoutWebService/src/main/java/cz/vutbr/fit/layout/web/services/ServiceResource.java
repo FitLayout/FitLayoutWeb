@@ -26,6 +26,7 @@ import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.rdf4j.model.Model;
 
 import cz.vutbr.fit.layout.api.ArtifactService;
@@ -47,6 +48,7 @@ import cz.vutbr.fit.layout.web.data.ServiceParams;
  * @author burgetr
  */
 @Path("service")
+@Tag(name = "service", description = "Service discovery and invocation")
 public class ServiceResource
 {
     private ServiceManager sm;
@@ -94,7 +96,7 @@ public class ServiceResource
     @PermitAll
     @Operation(summary = "Gets the default configuration of an artifact service.")
     @APIResponse(responseCode = "200", description = "Service configuration",
-            content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = ServiceParams.class)))    
+            content = @Content(schema = @Schema(ref = "ServiceParams")))    
     public Response getServiceConfig(@QueryParam("id") String serviceId)
     {
         ParametrizedOperation op = sm.findParmetrizedService(serviceId);

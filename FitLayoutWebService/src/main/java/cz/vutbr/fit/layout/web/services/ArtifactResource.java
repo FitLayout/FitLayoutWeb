@@ -34,6 +34,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
@@ -66,6 +67,7 @@ import cz.vutbr.fit.layout.web.ejb.UserService;
  * @author burgetr
  */
 @Path("r/{repoId}/artifact")
+@Tag(name = "artifact", description = "Artifact operations")
 public class ArtifactResource
 {
     @Inject

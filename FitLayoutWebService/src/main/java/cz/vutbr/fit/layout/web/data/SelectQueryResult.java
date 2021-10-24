@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.query.Binding;
@@ -23,6 +24,7 @@ import org.eclipse.rdf4j.query.BindingSet;
  * 
  * @author burgetr
  */
+@Schema(name = "SelectQueryResult", description = "A result of a SPARQL SELECT query")
 public class SelectQueryResult
 {
     public ResultHeader head;
@@ -42,6 +44,7 @@ public class SelectQueryResult
     
     //================================================================================
     
+    @Schema(name = "ResultHeader", description = "Query result header (column names)")
     public static class ResultHeader
     {
         public List<String> vars;
@@ -52,6 +55,7 @@ public class SelectQueryResult
         }
     }
     
+    @Schema(name = "ResultBody", description = "Query result body (bindings)")
     public static class ResultBody
     {
         public List<Map<String, ResultBinding>> bindings;
@@ -79,9 +83,12 @@ public class SelectQueryResult
         }
     }
     
+    @Schema(name = "ResultBinding", description = "Assigned result value")
     public static abstract class ResultBinding
     {
+        @Schema(description = "Value type {iri, literal}")
         public String type;
+        @Schema(description = "The value")
         public String value; 
     }
     

@@ -5,11 +5,14 @@
  */
 package cz.vutbr.fit.layout.web.data;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
 /**
  * The storage service status.
  * 
  * @author burgetr
  */
+@Schema(name = "StorageStatus", description = "Overall storage status")
 public class StorageStatus
 {
     /** Single mode or multi mode? */

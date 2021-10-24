@@ -5,11 +5,14 @@
  */
 package cz.vutbr.fit.layout.web.data;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
 /**
  * Data about a quadruple to be added.
  * 
  * @author burgetr
  */
+@Schema(name = "QuadrupleData", description = "RDF quadruple data")
 public class QuadrupleData
 {
     public String s;

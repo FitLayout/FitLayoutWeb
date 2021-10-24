@@ -14,13 +14,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.eclipse.microprofile.openapi.annotations.tags.Tags;
 
 import cz.vutbr.fit.layout.web.data.ResultValue;
-import cz.vutbr.fit.layout.web.data.UserInfo;
 import cz.vutbr.fit.layout.web.ejb.UserService;
 
 /**
@@ -28,6 +29,7 @@ import cz.vutbr.fit.layout.web.ejb.UserService;
  * @author burgetr
  */
 @Path("/auth")
+@Tags(value = @Tag(name = "auth", description = "User authorization"))
 public class AuthResource
 {
     @Inject
@@ -38,8 +40,9 @@ public class AuthResource
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(summary = "Get current user information based on the credentials (Bearer JWT token) obtained")
+    @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponse(responseCode = "200", description = "Current user information",
-            content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = UserInfo.class)))
+            content = @Content(schema = @Schema(ref="UserInfo")))
     public Response getUserInfo()
     {
         return Response.ok(new ResultValue(userService.getUser())).build();

@@ -20,6 +20,8 @@ import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.eclipse.microprofile.openapi.annotations.tags.Tags;
 
 import cz.vutbr.fit.layout.api.AreaTreeOperator;
 import cz.vutbr.fit.layout.api.ServiceManager;
@@ -33,6 +35,7 @@ import cz.vutbr.fit.layout.web.data.ResultValue;
  * @author burgetr
  */
 @Path("operator")
+@Tags(value = @Tag(ref = "service"))
 public class OperatorResource
 {
     private ServiceManager sm;

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.query.Binding;
@@ -23,6 +24,7 @@ import cz.vutbr.fit.layout.web.data.SelectQueryResult.ResultBinding;
  * Represents the subject descripton as map of properties.
  * @author burgetr
  */
+@Schema(name = "SubjectDescriptionResult", description = "Represents the subject descripton as map of properties.")
 public class SubjectDescriptionResult
 {
     public Map<String, List<ResultBinding>> description;

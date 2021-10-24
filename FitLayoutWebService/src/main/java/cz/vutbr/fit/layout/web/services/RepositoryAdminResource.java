@@ -27,12 +27,13 @@ import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
 import cz.vutbr.fit.layout.web.data.RepositoryInfo;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
-import cz.vutbr.fit.layout.web.data.StorageStatus;
 import cz.vutbr.fit.layout.web.data.UserInfo;
 import cz.vutbr.fit.layout.web.ejb.MailerService;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
@@ -43,6 +44,7 @@ import cz.vutbr.fit.layout.web.ejb.UserService;
  * @author burgetr
  */
 @Path("repository")
+@Tag(name = "admin", description = "Repository administration")
 public class RepositoryAdminResource
 {
     @Inject
@@ -73,7 +75,7 @@ public class RepositoryAdminResource
     @PermitAll
     @Operation(summary = "Creates a new repository.")
     @APIResponse(responseCode = "200", description = "The new repository description",
-            content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = RepositoryInfo.class)))    
+            content = @Content(schema = @Schema(ref = "RepositoryInfo")))    
     public Response createRepository(RepositoryInfo data)
     {
         if (data != null)
@@ -106,7 +108,7 @@ public class RepositoryAdminResource
     @PermitAll
     @Operation(summary = "Gets information about a repository identified by its ID.")
     @APIResponse(responseCode = "200", description = "Selected repository information",
-            content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = RepositoryInfo.class)))    
+            content = @Content(schema = @Schema(ref = "RepositoryInfo")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response getRepositoryInfo(@PathParam("repoId") String repositoryId)
     {
@@ -143,7 +145,7 @@ public class RepositoryAdminResource
     @PermitAll
     @Operation(summary = "Gets information about a repository identified by its ID.")
     @APIResponse(responseCode = "200", description = "The updated repository description",
-            content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = RepositoryInfo.class)))    
+            content = @Content(schema = @Schema(ref = "RepositoryInfo")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response updateRepositoryInfo(@PathParam("repoId") String repositoryId, RepositoryInfo data)
     {
@@ -210,6 +212,8 @@ public class RepositoryAdminResource
     @Operation(summary = "Gets a list of all available repositories (admin only).")
     @APIResponse(responseCode = "200", description = "List of repository information",
             content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = RepositoryInfo.class)))    
+    @APIResponse(responseCode = "403", description = "Not authorized")    
+    @SecurityRequirement(name = "jwt")
     public Response getAllRepositories()
     {
         List<RepositoryInfo> list = storage.getAllRepositories();
@@ -222,7 +226,7 @@ public class RepositoryAdminResource
     @PermitAll
     @Operation(summary = "Gets overall storage status.")
     @APIResponse(responseCode = "200", description = "Selected repository information",
-            content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = StorageStatus.class)))    
+            content = @Content(schema = @Schema(ref = "StorageStatus")))    
     public Response getStatus()
     {
         return Response.ok(new ResultValue(storage.getStatus(userService.getUser()))).build();

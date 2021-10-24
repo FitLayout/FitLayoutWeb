@@ -30,7 +30,7 @@ public class UserInfo
     public String email;
     public boolean anonymous = true;
     public boolean guest = false;
-    @Schema(type = SchemaType.STRING)
+    @Schema(type = SchemaType.STRING, format = "date")
     public Date expires = null;
     @Schema(type = SchemaType.ARRAY)
     public Set<String> roles = null;
