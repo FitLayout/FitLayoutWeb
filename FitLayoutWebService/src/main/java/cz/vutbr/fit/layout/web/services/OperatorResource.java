@@ -50,7 +50,7 @@ public class OperatorResource
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets a list of available area tree operator services.")
+    @Operation(operationId = "listOperators", summary = "Gets a list of available area tree operator services.")
     @APIResponse(responseCode = "200", description = "List of service descriptions",
             content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = ParametrizedServiceDescr.class)))    
     public Response listOperators()

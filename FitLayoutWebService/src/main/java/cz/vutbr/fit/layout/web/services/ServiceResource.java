@@ -63,7 +63,7 @@ public class ServiceResource
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets a list of available artifact services.")
+    @Operation(operationId = "getServiceList", summary = "Gets a list of available artifact services.")
     @APIResponse(responseCode = "200", description = "List of service descriptions",
             content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = ArtifactServiceDescr.class)))    
     public Response getServiceList()
@@ -81,7 +81,7 @@ public class ServiceResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
     @PermitAll
-    @Operation(summary = "Invokes a service and returns the resulting artifact")
+    @Operation(operationId = "invoke", summary = "Invokes a service and returns the resulting artifact")
     @APIResponse(responseCode = "200", description = "The complete artifact data")    
     public Response invoke(@HeaderParam("Accept") String accept, ServiceParams params)
     {
@@ -94,7 +94,7 @@ public class ServiceResource
     @Path("/config")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets the default configuration of an artifact service.")
+    @Operation(operationId = "getServiceConfig", summary = "Gets the default configuration of an artifact service.")
     @APIResponse(responseCode = "200", description = "Service configuration",
             content = @Content(schema = @Schema(ref = "ServiceParams")))    
     public Response getServiceConfig(@QueryParam("id") String serviceId)
@@ -117,7 +117,7 @@ public class ServiceResource
     @GET
     @Path("/ping")
     @PermitAll
-    @Operation(summary = "Returns 'ok'.")
+    @Operation(operationId = "ping", summary = "Returns 'ok'.")
     public String ping()
     {
         return "ok";

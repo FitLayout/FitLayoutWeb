@@ -39,7 +39,7 @@ public class AuthResource
     @Path("userInfo")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Get current user information based on the credentials (Bearer JWT token) obtained")
+    @Operation(operationId = "getUserInfo", summary = "Get current user information based on the credentials (Bearer JWT token) obtained")
     @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponse(responseCode = "200", description = "Current user information",
             content = @Content(schema = @Schema(ref="UserInfo")))

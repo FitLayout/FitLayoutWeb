@@ -57,7 +57,7 @@ public class RepositoryAdminResource
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets a list of available repositories for current user.")
+    @Operation(operationId = "listRepositories", summary = "Gets a list of available repositories for current user.")
     @APIResponse(responseCode = "200", description = "List of repository information",
             content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = RepositoryInfo.class)))    
     public Response listRepositories()
@@ -73,7 +73,7 @@ public class RepositoryAdminResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Creates a new repository.")
+    @Operation(operationId = "createRepository", summary = "Creates a new repository.")
     @APIResponse(responseCode = "200", description = "The new repository description",
             content = @Content(schema = @Schema(ref = "RepositoryInfo")))    
     public Response createRepository(RepositoryInfo data)
@@ -106,7 +106,7 @@ public class RepositoryAdminResource
     @Path("/{repoId}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets information about a repository identified by its ID.")
+    @Operation(operationId = "getRepositoryInfo", summary = "Gets information about a repository identified by its ID.")
     @APIResponse(responseCode = "200", description = "Selected repository information",
             content = @Content(schema = @Schema(ref = "RepositoryInfo")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
@@ -143,7 +143,7 @@ public class RepositoryAdminResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets information about a repository identified by its ID.")
+    @Operation(operationId = "updateRepositoryInfo", summary = "Gets information about a repository identified by its ID.")
     @APIResponse(responseCode = "200", description = "The updated repository description",
             content = @Content(schema = @Schema(ref = "RepositoryInfo")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
@@ -179,7 +179,7 @@ public class RepositoryAdminResource
     @Path("/{repoId}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Deletes a repository identified by its ID.")
+    @Operation(operationId = "deleteRepository", summary = "Deletes a repository identified by its ID.")
     @APIResponse(responseCode = "200", description = "Repository deleted")    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response deleteRepository(@PathParam("repoId") String repositoryId)
@@ -209,12 +209,12 @@ public class RepositoryAdminResource
     @Path("/all")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed("admin")
-    @Operation(summary = "Gets a list of all available repositories (admin only).")
+    @Operation(operationId = "listAllRepositories", summary = "Gets a list of all available repositories (admin only).")
     @APIResponse(responseCode = "200", description = "List of repository information",
             content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = RepositoryInfo.class)))    
     @APIResponse(responseCode = "403", description = "Not authorized")    
     @SecurityRequirement(name = "jwt")
-    public Response getAllRepositories()
+    public Response listAllRepositories()
     {
         List<RepositoryInfo> list = storage.getAllRepositories();
         return Response.ok(new ResultValue(list)).build();
@@ -224,7 +224,7 @@ public class RepositoryAdminResource
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets overall storage status.")
+    @Operation(operationId = "status", summary = "Gets overall storage status.")
     @APIResponse(responseCode = "200", description = "Selected repository information",
             content = @Content(schema = @Schema(ref = "StorageStatus")))    
     public Response getStatus()
@@ -236,7 +236,7 @@ public class RepositoryAdminResource
     @Path("/remind/{email}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Sends an e-mail reminder containing all repositories that have the given e-mail assigned")
+    @Operation(operationId = "sendRepositoriesReminder", summary = "Sends an e-mail reminder containing all repositories that have the given e-mail assigned")
     @APIResponse(responseCode = "200", description = "E-mail sent (or nothing set if no repository is assigned to the given e-mail")    
     public Response sendRepositoriesReminder(@PathParam("email") String email)
     {

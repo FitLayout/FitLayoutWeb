@@ -72,7 +72,7 @@ public class RepositoryResource
     @Path("/touch")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Updates the last access time of the given repository to current time")
+    @Operation(operationId = "touch", summary = "Updates the last access time of the given repository to current time")
     @APIResponse(responseCode = "200", description = "Repository touched")    
     public Response touch()
     {
@@ -85,7 +85,7 @@ public class RepositoryResource
     @Consumes(Serialization.SPARQL_QUERY)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Executes a SPARQL SELECT query on the underlying RDF repository")
+    @Operation(operationId = "repositoryQuery", summary = "Executes a SPARQL SELECT query on the underlying RDF repository")
     @APIResponse(responseCode = "200", description = "SPARQL query result",
         content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
@@ -119,7 +119,7 @@ public class RepositoryResource
     @Path("/subject/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets all triples for the given subject IRI")
+    @Operation(operationId = "querySubject", summary = "Gets all triples for the given subject IRI")
     @APIResponse(responseCode = "200", description = "Select query result assigning (p)redicate and (v)alue",
         content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
@@ -154,7 +154,7 @@ public class RepositoryResource
     @Path("/object/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets all triples for the given object IRI")
+    @Operation(operationId = "queryObject", summary = "Gets all triples for the given object IRI")
     @APIResponse(responseCode = "200", description = "Select query result assigning (v)alue and (p)redicate",
         content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
@@ -189,7 +189,7 @@ public class RepositoryResource
     @Path("/subject/{subjIri}/{propertyIri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets the property value for the given subject and property IRIs")
+    @Operation(operationId = "getSubjectValue", summary = "Gets the property value for the given subject and property IRIs")
     @APIResponse(responseCode = "200", description = "Select query result assigning (p)redicate and (v)alue",
         content = @Content(schema = @Schema(ref = "ResultBinding")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
@@ -237,7 +237,7 @@ public class RepositoryResource
     @Path("/type/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets the assigned rdf:type IRI for the given subject IRI")
+    @Operation(operationId = "getSubjectType", summary = "Gets the assigned rdf:type IRI for the given subject IRI")
     @APIResponse(responseCode = "200", description = "Type IRI or 'unknown'",
         content = @Content(schema = @Schema(type = SchemaType.STRING)))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
@@ -273,7 +273,7 @@ public class RepositoryResource
     @Path("/describe/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets the RDF description for the given subject IRI")
+    @Operation(operationId = "describeSubject", summary = "Gets the RDF description for the given subject IRI")
     @APIResponse(responseCode = "200", description = "Subject description",
         content = @Content(schema = @Schema(ref = "SubjectDescriptionResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
@@ -309,7 +309,7 @@ public class RepositoryResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Adds a new quadruple to the repository")
+    @Operation(operationId = "addQuadruple", summary = "Adds a new quadruple to the repository")
     @APIResponse(responseCode = "200", description = "The quadruple added",
         content = @Content(schema = @Schema(ref = "QuadrupleData")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
@@ -361,7 +361,7 @@ public class RepositoryResource
     @Path("/checkRepo")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Checks the repository whether it exists and is properly initialized")
+    @Operation(operationId = "checkRepo", summary = "Checks the repository whether it exists and is properly initialized")
     @APIResponse(responseCode = "200", description = "The quadruple added",
         content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = Result.class)))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
@@ -389,7 +389,7 @@ public class RepositoryResource
     @Path("/initRepo")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Initializes an empty repository with the necessary RDF metadata (schemas)")
+    @Operation(operationId = "initRepo", summary = "Initializes an empty repository with the necessary RDF metadata (schemas)")
     @APIResponse(responseCode = "200", description = "Repository initialized")    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response initRepo()

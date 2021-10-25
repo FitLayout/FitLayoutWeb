@@ -133,7 +133,7 @@ public class ArtifactResource
     @Path("/")
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
     @PermitAll
-    @Operation(summary = "Retrieves information about all artifacts in the repository (artifact contents not included).")
+    @Operation(operationId = "getArtifactsInfo", summary = "Retrieves information about all artifacts in the repository (artifact contents not included).")
     @APIResponses(value = {
             @APIResponse(responseCode = "200-JSONLD", description = "The artifacts RDF description serialized in JSON-LD", 
                     content = @Content(mediaType = Serialization.JSONLD)),    
@@ -152,7 +152,7 @@ public class ArtifactResource
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Gets a list of artifact IRIs.")
+    @Operation(operationId = "listArtifacts", summary = "Gets a list of artifact IRIs.")
     @APIResponse(responseCode = "200", description = "List of artifact IRIs",
             content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = String.class)))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
@@ -183,11 +183,11 @@ public class ArtifactResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Creates a new artifact by invoking a service.")
+    @Operation(operationId = "createArtifact", summary = "Creates a new artifact by invoking a service.")
     @APIResponse(responseCode = "200", description = "The IRI of the new artifact created",
             content = @Content(schema = @Schema(type = SchemaType.STRING)))    
     @APIResponse(responseCode = "404", description = "Repository or service with the given ID not found")    
-    public Response create(ServiceParams params)
+    public Response createArtifact(ServiceParams params)
     {
         try {
             final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
@@ -395,7 +395,7 @@ public class ArtifactResource
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML,
         MediaType.TEXT_XML, MediaType.TEXT_HTML, "image/png"})
     @PermitAll
-    @Operation(summary = "Gets a complete artifact including its contents identified by its IRI")
+    @Operation(operationId = "getArtifact", summary = "Gets a complete artifact including its contents identified by its IRI")
     @APIResponses(value = {
         @APIResponse(responseCode = "200-JSONLD", description = "The complete artifact RDF description serialized in JSON-LD", 
                 content = @Content(mediaType = Serialization.JSONLD)),    
@@ -428,7 +428,7 @@ public class ArtifactResource
     @Path("/item/{iri}")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Deletes an artifact identified by its IRI")
+    @Operation(operationId = "deleteArtifact", summary = "Deletes an artifact identified by its IRI")
     @APIResponse(responseCode = "200", description = "Artifact deleted")    
     @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found")    
     public Response removeArtifact(@PathParam("iri") String iriValue)
@@ -459,7 +459,7 @@ public class ArtifactResource
     @Path("/clear")
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(summary = "Clears the repository - deletes all artifacts and metadata")
+    @Operation(operationId = "clear", summary = "Clears the repository - deletes all artifacts and metadata")
     @APIResponse(responseCode = "200", description = "Repository cleared")    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response removeAll()
@@ -489,7 +489,7 @@ public class ArtifactResource
     @Path("/info/{iri}")
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
     @PermitAll
-    @Operation(summary = "Retrieves information about an artifact identified by its IRI (artifact content not included).")
+    @Operation(operationId = "getArtifactInfo", summary = "Retrieves information about an artifact identified by its IRI (artifact content not included).")
     @APIResponses(value = {
             @APIResponse(responseCode = "200-JSONLD", description = "The artifact RDF description serialized in JSON-LD", 
                     content = @Content(mediaType = Serialization.JSONLD)),    
