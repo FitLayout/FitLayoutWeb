@@ -1,4 +1,4 @@
-package airhacks.service.ping.boundary;
+package cz.vutbr.fit.layout.web.test;
 import java.net.URI;
 import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
@@ -18,7 +18,7 @@ public class PingResourceIT {
 
     @BeforeEach
     public void init() {
-        URI uri = URI.create("http://localhost:8080/fitlayout-web/resources/");
+        URI uri = URI.create("http://localhost:8080/fitlayout-web");
         this.client = RestClientBuilder.
                 newBuilder().
                 baseUri(uri).
