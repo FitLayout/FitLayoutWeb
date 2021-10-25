@@ -73,7 +73,8 @@ public class RepositoryResource
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(operationId = "touch", summary = "Updates the last access time of the given repository to current time")
-    @APIResponse(responseCode = "200", description = "Repository touched")    
+    @APIResponse(responseCode = "200", description = "Repository touched",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
     public Response touch()
     {
         storage.touch(userService.getUser(), repoId);
@@ -98,7 +99,7 @@ public class RepositoryResource
             {
                 final List<BindingSet> bindings = rdfst.executeSafeTupleQuery(query);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
-                return Response.ok(new ResultValue(result)).build();
+                return Response.ok(result).build();
             }
             else
             {
@@ -133,7 +134,7 @@ public class RepositoryResource
                 final String query = "SELECT ?p ?v WHERE { <" + iri.toString() + "> ?p ?v } LIMIT " + limit;
                 final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
-                return Response.ok(new ResultValue(result)).build();
+                return Response.ok(result).build();
             }
             else
             {
@@ -168,7 +169,7 @@ public class RepositoryResource
                 final String query = "SELECT ?v ?p WHERE { ?v ?p <" + iri.toString() + "> } LIMIT " + limit;
                 final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
-                return Response.ok(new ResultValue(result)).build();
+                return Response.ok(result).build();
             }
             else
             {
@@ -205,17 +206,17 @@ public class RepositoryResource
                 if (val instanceof IRI)
                 {
                     final var ret = new SelectQueryResult.IriBinding((IRI) val);
-                    return Response.ok(new ResultValue(ret)).build();
+                    return Response.ok(ret).build();
                 }
                 else if (val instanceof Literal)
                 {
                     final var ret = new SelectQueryResult.LiteralBinding(val.stringValue(), ((Literal) val).getDatatype());
-                    return Response.ok(new ResultValue(ret)).build();
+                    return Response.ok(ret).build();
                 }
                 else
                 {
                     final var ret = new SelectQueryResult.NullBinding();
-                    return Response.ok(new ResultValue(ret)).build();
+                    return Response.ok(ret).build();
                 }
             }
             else
@@ -239,7 +240,7 @@ public class RepositoryResource
     @PermitAll
     @Operation(operationId = "getSubjectType", summary = "Gets the assigned rdf:type IRI for the given subject IRI")
     @APIResponse(responseCode = "200", description = "Type IRI or 'unknown'",
-        content = @Content(schema = @Schema(type = SchemaType.STRING)))    
+        content = @Content(schema = @Schema(ref = "ResultValue")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response getSubjectType(@PathParam("iri") String iriValue)
     {
@@ -287,7 +288,7 @@ public class RepositoryResource
                 final String query = "SELECT ?p ?v WHERE { <" + iri.toString() + "> ?p ?v }";
                 final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
                 final SubjectDescriptionResult result = new SubjectDescriptionResult(bindings);
-                return Response.ok(new ResultValue(result)).build();
+                return Response.ok(result).build();
             }
             else
             {
@@ -311,7 +312,7 @@ public class RepositoryResource
     @PermitAll
     @Operation(operationId = "addQuadruple", summary = "Adds a new quadruple to the repository")
     @APIResponse(responseCode = "200", description = "The quadruple added",
-        content = @Content(schema = @Schema(ref = "QuadrupleData")))    
+        content = @Content(schema = @Schema(ref = "ResultValue")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response addQuadruple(QuadrupleData quad)
     {
@@ -363,7 +364,7 @@ public class RepositoryResource
     @PermitAll
     @Operation(operationId = "checkRepo", summary = "Checks the repository whether it exists and is properly initialized")
     @APIResponse(responseCode = "200", description = "The quadruple added",
-        content = @Content(schema = @Schema(type = SchemaType.OBJECT, implementation = Result.class)))    
+        content = @Content(schema = @Schema(ref = "ResultValue")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response checkRepo()
     {
@@ -390,7 +391,8 @@ public class RepositoryResource
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(operationId = "initRepo", summary = "Initializes an empty repository with the necessary RDF metadata (schemas)")
-    @APIResponse(responseCode = "200", description = "Repository initialized")    
+    @APIResponse(responseCode = "200", description = "Repository initialized",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response initRepo()
     {
@@ -400,7 +402,7 @@ public class RepositoryResource
             if (repo.isInitialized())
                 return Response.ok(new ResultValue("ok")).build();
             else
-                return Response.serverError().entity("error during repository initialization").build();
+                return Response.serverError().entity(new ResultErrorMessage("error during repository initialization")).build();
         }
         else
         {

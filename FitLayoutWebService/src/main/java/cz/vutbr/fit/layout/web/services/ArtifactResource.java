@@ -164,7 +164,7 @@ public class ArtifactResource
             {
                 Collection<IRI> list = repo.getArtifactIRIs();
                 List<String> stringList = list.stream().map(Object::toString).collect(Collectors.toList());
-                return Response.ok(new ResultValue(stringList)).build();
+                return Response.ok(stringList).build();
             }
             else
             {
@@ -185,7 +185,9 @@ public class ArtifactResource
     @PermitAll
     @Operation(operationId = "createArtifact", summary = "Creates a new artifact by invoking a service.")
     @APIResponse(responseCode = "200", description = "The IRI of the new artifact created",
-            content = @Content(schema = @Schema(type = SchemaType.STRING)))    
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "400", description = "Invalid service parametres",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     @APIResponse(responseCode = "404", description = "Repository or service with the given ID not found")    
     public Response createArtifact(ServiceParams params)
     {
@@ -429,7 +431,8 @@ public class ArtifactResource
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(operationId = "deleteArtifact", summary = "Deletes an artifact identified by its IRI")
-    @APIResponse(responseCode = "200", description = "Artifact deleted")    
+    @APIResponse(responseCode = "200", description = "Artifact deleted",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
     @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found")    
     public Response removeArtifact(@PathParam("iri") String iriValue)
     {
@@ -460,7 +463,8 @@ public class ArtifactResource
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(operationId = "clear", summary = "Clears the repository - deletes all artifacts and metadata")
-    @APIResponse(responseCode = "200", description = "Repository cleared")    
+    @APIResponse(responseCode = "200", description = "Repository cleared",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response removeAll()
     {

@@ -5,11 +5,14 @@
  */
 package cz.vutbr.fit.layout.web.data;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
 /**
  * A JAX-RS result containing any serializable object under 'result'.
  * 
  * @author burgetr
  */
+@Schema(name = "ResultValue", description = "Result of an operation conaining an optional result value")
 public class ResultValue extends Result
 {
     Object result;

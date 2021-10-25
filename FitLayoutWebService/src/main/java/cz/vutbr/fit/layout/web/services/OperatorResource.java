@@ -27,7 +27,6 @@ import cz.vutbr.fit.layout.api.AreaTreeOperator;
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.web.FLConfig;
 import cz.vutbr.fit.layout.web.data.ParametrizedServiceDescr;
-import cz.vutbr.fit.layout.web.data.ResultValue;
 
 /**
  * Area operator management and configuration.
@@ -61,7 +60,7 @@ public class OperatorResource
         {
             result.add(new ParametrizedServiceDescr(op));
         }
-        return Response.ok(new ResultValue(result)).build();
+        return Response.ok(result).build();
     }
 
 }

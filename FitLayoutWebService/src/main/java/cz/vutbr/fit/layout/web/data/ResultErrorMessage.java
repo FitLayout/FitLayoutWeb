@@ -5,11 +5,14 @@
  */
 package cz.vutbr.fit.layout.web.data;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
 /**
  * A result containing an error message.
  * 
  * @author burgetr
  */
+@Schema(name = "ResultErrorMessage", description = "Error result of an operation")
 public class ResultErrorMessage extends Result
 {
     //standard messages

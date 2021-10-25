@@ -21,7 +21,6 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.microprofile.openapi.annotations.tags.Tags;
 
-import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.ejb.UserService;
 
 /**
@@ -45,7 +44,7 @@ public class AuthResource
             content = @Content(schema = @Schema(ref="UserInfo")))
     public Response getUserInfo()
     {
-        return Response.ok(new ResultValue(userService.getUser())).build();
+        return Response.ok(userService.getUser()).build();
     }
 
 }

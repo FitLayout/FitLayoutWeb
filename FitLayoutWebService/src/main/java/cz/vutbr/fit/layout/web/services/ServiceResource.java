@@ -74,7 +74,7 @@ public class ServiceResource
         {
             result.add(new ArtifactServiceDescr(serv));
         }
-        return Response.ok(new ResultValue(result)).build();
+        return Response.ok(result).build();
     }
     
     @POST
@@ -104,7 +104,7 @@ public class ServiceResource
         {
             Map<String, Object> p = ServiceManager.getServiceParams(op);
             ServiceParams params = new ServiceParams(serviceId, p);
-            return Response.ok(new ResultValue(params)).build();
+            return Response.ok(params).build();
         }
         else
         {

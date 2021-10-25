@@ -64,9 +64,9 @@ public class RepositoryAdminResource
     {
         var user = userService.getUser();
         if (user != null && !user.isGuest() && !user.isAnonymous())
-            return Response.ok(new ResultValue(storage.getRepositories(user))).build();
+            return Response.ok(storage.getRepositories(user)).build();
         else
-            return Response.ok(new ResultValue(List.of())).build();
+            return Response.ok(List.of()).build();
     }
     
     @POST
@@ -85,7 +85,7 @@ public class RepositoryAdminResource
                 if (!user.isAnonymous() && user.getEmail() != null)
                     data.setEmail(user.getEmail()); //force user e-mail for the repository (when available)
                 storage.createRepository(userService.getUser(), data);
-                return Response.ok(new ResultValue(data)).build();
+                return Response.ok(data).build();
             } catch (RepositoryException e) {
                 return Response.serverError()
                         .type(MediaType.APPLICATION_JSON)
@@ -117,7 +117,7 @@ public class RepositoryAdminResource
             try {
                 var info = storage.getRepositoryInfo(userService.getUser(), repositoryId);
                 if (info != null)
-                    return Response.ok(new ResultValue(info)).build();
+                    return Response.ok(info).build();
                 else
                     return Response.status(Status.NOT_FOUND)
                             .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
@@ -146,6 +146,8 @@ public class RepositoryAdminResource
     @Operation(operationId = "updateRepositoryInfo", summary = "Gets information about a repository identified by its ID.")
     @APIResponse(responseCode = "200", description = "The updated repository description",
             content = @Content(schema = @Schema(ref = "RepositoryInfo")))    
+    @APIResponse(responseCode = "400", description = "Invalid service parametres",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response updateRepositoryInfo(@PathParam("repoId") String repositoryId, RepositoryInfo data)
     {
@@ -154,7 +156,7 @@ public class RepositoryAdminResource
             try {
                 var info = storage.updateRepository(userService.getUser(), repositoryId, data);
                 if (info != null)
-                    return Response.ok(new ResultValue(info)).build();
+                    return Response.ok(info).build();
                 else
                     return Response.status(Status.NOT_FOUND)
                             .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
@@ -180,7 +182,8 @@ public class RepositoryAdminResource
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(operationId = "deleteRepository", summary = "Deletes a repository identified by its ID.")
-    @APIResponse(responseCode = "200", description = "Repository deleted")    
+    @APIResponse(responseCode = "200", description = "Repository deleted",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
     public Response deleteRepository(@PathParam("repoId") String repositoryId)
     {
@@ -217,7 +220,7 @@ public class RepositoryAdminResource
     public Response listAllRepositories()
     {
         List<RepositoryInfo> list = storage.getAllRepositories();
-        return Response.ok(new ResultValue(list)).build();
+        return Response.ok(list).build();
     }
     
     @GET
@@ -229,7 +232,7 @@ public class RepositoryAdminResource
             content = @Content(schema = @Schema(ref = "StorageStatus")))    
     public Response getStatus()
     {
-        return Response.ok(new ResultValue(storage.getStatus(userService.getUser()))).build();
+        return Response.ok(storage.getStatus(userService.getUser())).build();
     }
     
     @GET
@@ -237,7 +240,8 @@ public class RepositoryAdminResource
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(operationId = "sendRepositoriesReminder", summary = "Sends an e-mail reminder containing all repositories that have the given e-mail assigned")
-    @APIResponse(responseCode = "200", description = "E-mail sent (or nothing set if no repository is assigned to the given e-mail")    
+    @APIResponse(responseCode = "200", description = "E-mail sent (or nothing set if no repository is assigned to the given e-mail",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
     public Response sendRepositoriesReminder(@PathParam("email") String email)
     {
         if (email != null)
