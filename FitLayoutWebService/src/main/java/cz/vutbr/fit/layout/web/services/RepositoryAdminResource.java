@@ -109,7 +109,8 @@ public class RepositoryAdminResource
     @Operation(operationId = "getRepositoryInfo", summary = "Gets information about a repository identified by its ID.")
     @APIResponse(responseCode = "200", description = "Selected repository information",
             content = @Content(schema = @Schema(ref = "RepositoryInfo")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response getRepositoryInfo(@PathParam("repoId") String repositoryId)
     {
         if (repositoryId != null)
@@ -148,7 +149,8 @@ public class RepositoryAdminResource
             content = @Content(schema = @Schema(ref = "RepositoryInfo")))    
     @APIResponse(responseCode = "400", description = "Invalid service parametres",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response updateRepositoryInfo(@PathParam("repoId") String repositoryId, RepositoryInfo data)
     {
         if (repositoryId != null)
@@ -184,7 +186,10 @@ public class RepositoryAdminResource
     @Operation(operationId = "deleteRepository", summary = "Deletes a repository identified by its ID.")
     @APIResponse(responseCode = "200", description = "Repository deleted",
             content = @Content(schema = @Schema(ref = "ResultValue")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "400", description = "Invalid parametres",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response deleteRepository(@PathParam("repoId") String repositoryId)
     {
         if (repositoryId != null)
@@ -215,7 +220,8 @@ public class RepositoryAdminResource
     @Operation(operationId = "listAllRepositories", summary = "Gets a list of all available repositories (admin only).")
     @APIResponse(responseCode = "200", description = "List of repository information",
             content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = RepositoryInfo.class)))    
-    @APIResponse(responseCode = "403", description = "Not authorized")    
+    @APIResponse(responseCode = "403", description = "Not authorized",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     @SecurityRequirement(name = "jwt")
     public Response listAllRepositories()
     {

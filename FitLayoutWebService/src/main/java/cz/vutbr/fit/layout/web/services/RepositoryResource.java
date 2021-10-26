@@ -22,7 +22,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
@@ -33,8 +32,6 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
-
-import com.sun.net.httpserver.Authenticator.Result;
 
 import cz.vutbr.fit.layout.api.IRIDecoder;
 import cz.vutbr.fit.layout.ontology.BOX;
@@ -89,8 +86,10 @@ public class RepositoryResource
     @Operation(operationId = "repositoryQuery", summary = "Executes a SPARQL SELECT query on the underlying RDF repository")
     @APIResponse(responseCode = "200", description = "SPARQL query result",
         content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
-    @APIResponse(responseCode = "500", description = "Query evaluation error")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    @APIResponse(responseCode = "500", description = "Query evaluation error",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response repositoryQuery(String query)
     {
         try {
@@ -123,7 +122,8 @@ public class RepositoryResource
     @Operation(operationId = "querySubject", summary = "Gets all triples for the given subject IRI")
     @APIResponse(responseCode = "200", description = "Select query result assigning (p)redicate and (v)alue",
         content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response querySubject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
         try {
@@ -158,7 +158,8 @@ public class RepositoryResource
     @Operation(operationId = "queryObject", summary = "Gets all triples for the given object IRI")
     @APIResponse(responseCode = "200", description = "Select query result assigning (v)alue and (p)redicate",
         content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response queryObject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
     {
         try {
@@ -193,7 +194,8 @@ public class RepositoryResource
     @Operation(operationId = "getSubjectValue", summary = "Gets the property value for the given subject and property IRIs")
     @APIResponse(responseCode = "200", description = "Select query result assigning (p)redicate and (v)alue",
         content = @Content(schema = @Schema(ref = "ResultBinding")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response getSubjectValue(@PathParam("subjIri") String subjIriValue, @PathParam("propertyIri") String propertyIriValue)
     {
         try {
@@ -241,7 +243,8 @@ public class RepositoryResource
     @Operation(operationId = "getSubjectType", summary = "Gets the assigned rdf:type IRI for the given subject IRI")
     @APIResponse(responseCode = "200", description = "Type IRI or 'unknown'",
         content = @Content(schema = @Schema(ref = "ResultValue")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response getSubjectType(@PathParam("iri") String iriValue)
     {
         try {
@@ -277,7 +280,8 @@ public class RepositoryResource
     @Operation(operationId = "describeSubject", summary = "Gets the RDF description for the given subject IRI")
     @APIResponse(responseCode = "200", description = "Subject description",
         content = @Content(schema = @Schema(ref = "SubjectDescriptionResult")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response describeSubject(@PathParam("iri") String iriValue)
     {
         try {
@@ -313,7 +317,10 @@ public class RepositoryResource
     @Operation(operationId = "addQuadruple", summary = "Adds a new quadruple to the repository")
     @APIResponse(responseCode = "200", description = "The quadruple added",
         content = @Content(schema = @Schema(ref = "ResultValue")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "400", description = "Invalid quadruple specification",
+        content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response addQuadruple(QuadrupleData quad)
     {
         if (quad.isOk())
@@ -353,7 +360,9 @@ public class RepositoryResource
         }
         else
         {
-            return Response.serverError().entity(new ResultErrorMessage("error", "Must provide {s, p, (o | value), artifact}")).build();
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage("Must provide {s, p, (o | value), artifact}"))
+                    .build();
         }
         
     }
@@ -363,9 +372,10 @@ public class RepositoryResource
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(operationId = "checkRepo", summary = "Checks the repository whether it exists and is properly initialized")
-    @APIResponse(responseCode = "200", description = "The quadruple added",
+    @APIResponse(responseCode = "200", description = "Repository check result",
         content = @Content(schema = @Schema(ref = "ResultValue")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response checkRepo()
     {
         final RDFStorage rdfst = storage.getStorage(userService.getUser(), repoId);
@@ -393,7 +403,8 @@ public class RepositoryResource
     @Operation(operationId = "initRepo", summary = "Initializes an empty repository with the necessary RDF metadata (schemas)")
     @APIResponse(responseCode = "200", description = "Repository initialized",
             content = @Content(schema = @Schema(ref = "ResultValue")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response initRepo()
     {
         final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);

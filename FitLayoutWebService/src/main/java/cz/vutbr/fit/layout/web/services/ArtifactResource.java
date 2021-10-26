@@ -121,6 +121,11 @@ public class ArtifactResource
                         .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
                         .build();
             }
+        } catch (IllegalArgumentException e) {
+            return Response.status(Status.BAD_REQUEST)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
         } catch (RepositoryException | ServiceException e) {
             return Response.serverError()
                     .type(MediaType.APPLICATION_JSON)
@@ -141,7 +146,10 @@ public class ArtifactResource
                     content = @Content(mediaType = Serialization.TURTLE)),   
             @APIResponse(responseCode = "200-RDFXML", description = "The artifacts RDF description serialized in RDF/XML",
                     content = @Content(mediaType = Serialization.RDFXML)),
-            @APIResponse(responseCode = "404", description = "Repository with the given ID not found or could not be serialized")
+            @APIResponse(responseCode = "400", description = "Invalid service parametres",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage"))),
+            @APIResponse(responseCode = "404", description = "Repository with the given ID not found or could not be serialized",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage")))
         })
     public Response getArtifactsInfo(@HeaderParam("Accept") String accept)
     {
@@ -155,7 +163,8 @@ public class ArtifactResource
     @Operation(operationId = "listArtifacts", summary = "Gets a list of artifact IRIs.")
     @APIResponse(responseCode = "200", description = "List of artifact IRIs",
             content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = String.class)))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response listArtifacts()
     {
         try {
@@ -188,7 +197,8 @@ public class ArtifactResource
             content = @Content(schema = @Schema(ref = "ResultValue")))    
     @APIResponse(responseCode = "400", description = "Invalid service parametres",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
-    @APIResponse(responseCode = "404", description = "Repository or service with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository or service with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response createArtifact(ServiceParams params)
     {
         try {
@@ -411,7 +421,10 @@ public class ArtifactResource
                 content = @Content(mediaType = MediaType.TEXT_HTML)),
         @APIResponse(responseCode = "200-PNG", description = "The complete artifact in a PNG image",
                 content = @Content(mediaType = "image/png")),   
-        @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found or could not be serialized")
+        @APIResponse(responseCode = "400", description = "Invalid IRI provided",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage"))),    
+        @APIResponse(responseCode = "404", description = "Repository or service with the given ID not found",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage")))    
     })
     public Response getArtifact(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
     {
@@ -433,7 +446,8 @@ public class ArtifactResource
     @Operation(operationId = "deleteArtifact", summary = "Deletes an artifact identified by its IRI")
     @APIResponse(responseCode = "200", description = "Artifact deleted",
             content = @Content(schema = @Schema(ref = "ResultValue")))    
-    @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response removeArtifact(@PathParam("iri") String iriValue)
     {
         try {
@@ -465,7 +479,8 @@ public class ArtifactResource
     @Operation(operationId = "clear", summary = "Clears the repository - deletes all artifacts and metadata")
     @APIResponse(responseCode = "200", description = "Repository cleared",
             content = @Content(schema = @Schema(ref = "ResultValue")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found")    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response removeAll()
     {
         try {
@@ -501,7 +516,10 @@ public class ArtifactResource
                     content = @Content(mediaType = Serialization.TURTLE)),   
             @APIResponse(responseCode = "200-RDFXML", description = "The artifact RDF description serialized in RDF/XML",
                     content = @Content(mediaType = Serialization.RDFXML)),
-            @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found or could not be serialized")
+            @APIResponse(responseCode = "400", description = "Invalid IRI provided",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage"))),    
+            @APIResponse(responseCode = "404", description = "Repository or service with the given ID not found",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage")))    
         })
     public Response getArtifactInfo(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
     {
