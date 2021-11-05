@@ -5,14 +5,18 @@
  */
 package cz.vutbr.fit.layout.web.services;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -29,9 +33,11 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.ListBindingSet;
 
 import cz.vutbr.fit.layout.api.IRIDecoder;
 import cz.vutbr.fit.layout.ontology.BOX;
@@ -40,6 +46,7 @@ import cz.vutbr.fit.layout.rdf.RDFStorage;
 import cz.vutbr.fit.layout.rdf.Serialization;
 import cz.vutbr.fit.layout.rdf.StorageException;
 import cz.vutbr.fit.layout.web.data.QuadrupleData;
+import cz.vutbr.fit.layout.web.data.Result;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.SelectQueryResult;
@@ -366,6 +373,209 @@ public class RepositoryResource
         }
         
     }
+    
+    //========================================================================================================
+    
+    @GET
+    @Path("/namespaces")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "getNamespaces", summary = "Gets a list of namespace declarations that have been defined for the repository")
+    @APIResponse(responseCode = "200", description = "Namespace query result",
+        content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+        content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response getNamespaces()
+    {
+        try {
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+            if (repo != null)
+            {
+                final List<Namespace> nss = repo.getStorage().getNamespaces();
+                //transform to a binding set
+                final var vf = repo.getStorage().getValueFactory();
+                List<BindingSet> bindings = nss.stream()
+                        .map((ns) -> new ListBindingSet(List.of("prefix", "namespace"),
+                                                        vf.createLiteral(ns.getPrefix()), 
+                                                        vf.createLiteral(ns.getName())))
+                        .collect(Collectors.toList());
+                //send result
+                final SelectQueryResult result = new SelectQueryResult(bindings);
+                return Response.ok(result).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        }
+    }
+    
+    @DELETE
+    @Path("/namespaces")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "clearNamespaces", summary = "Removes all namespace declarations from the repository")
+    @APIResponse(responseCode = "200", description = "Namespaces removed",
+        content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+        content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response clearNamespaces()
+    {
+        try {
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+            if (repo != null)
+            {
+                repo.getStorage().clearNamespaces();
+                return Response.ok(new Result(Result.OK)).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        }
+    }
+    
+    @GET
+    @Path("/namespaces/{prefix}")
+    @Produces(MediaType.TEXT_PLAIN)
+    @PermitAll
+    @Operation(operationId = "getNamespace", summary = "Gets a namespace URI for the given prefix")
+    @APIResponse(responseCode = "200", description = "Namespace URI",
+        content = @Content(mediaType = "text/plain"))    
+    @APIResponse(responseCode = "404", description = "Repository or namespace with the given ID not found",
+        content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response getNamespace(@PathParam("prefix") String prefix)
+    {
+        try {
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+            if (repo != null)
+            {
+                final String ns = repo.getStorage().getNamespace(prefix);
+                if (ns != null)
+                    return Response.ok(ns).build();
+                else
+                    return Response.status(Status.NOT_FOUND)
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                            .build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        }
+    }
+    
+    @DELETE
+    @Path("/namespaces/{prefix}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "deleteNamespace", summary = "Removes a namespace definition for the given prefix")
+    @APIResponse(responseCode = "200", description = "Namespace deleted",
+        content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "404", description = "Repository or namespace with the given ID not found",
+        content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response deleteNamespace(@PathParam("prefix") String prefix)
+    {
+        try {
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+            if (repo != null)
+            {
+                final String ns = repo.getStorage().getNamespace(prefix);
+                if (ns != null)
+                {
+                    repo.getStorage().deleteNamespace(prefix);
+                    return Response.ok(new Result(Result.OK)).build();
+                }
+                else
+                    return Response.status(Status.NOT_FOUND)
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                            .build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        }
+    }
+    
+    @PUT
+    @Path("/namespaces/{prefix}")
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "addNamespace", summary = "Adds a namespace definition for the given prefix")
+    @APIResponse(responseCode = "200", description = "Namespace added",
+        content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+        content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response addNamespace(@PathParam("prefix") String prefix, String body)
+    {
+        if (prefix != null && body != null)
+        {
+            try {
+                final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+                if (repo != null)
+                {
+                    repo.getStorage().addNamespace(prefix, body.trim());
+                    return Response.ok(new Result(Result.OK)).build();
+                }
+                else
+                {
+                    return Response.status(Status.NOT_FOUND)
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                            .build();
+                }
+            } catch (StorageException e) {
+                return Response.serverError()
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(e.getMessage()))
+                        .build();
+            }
+        }
+        else
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage("prefix or namespace is missing"))
+                    .build();
+        }
+    }
+    
+    //========================================================================================================
     
     @GET
     @Path("/checkRepo")
