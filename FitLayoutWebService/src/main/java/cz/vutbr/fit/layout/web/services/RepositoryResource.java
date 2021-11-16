@@ -62,6 +62,9 @@ import cz.vutbr.fit.layout.web.ejb.UserService;
 @Tag(name = "repository", description = "RDF repository opertations")
 public class RepositoryResource
 {
+    /** Maximal value of a query limit. */
+    private static final long MAX_QUERY_LIMIT = 2048;
+    
     @Inject
     private UserService userService;
     @Inject
@@ -85,24 +88,28 @@ public class RepositoryResource
     }
     
     @POST
-    @Path("/query")
+    @Path("/selectQuery")
     @Consumes(Serialization.SPARQL_QUERY)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(operationId = "repositoryQuery", summary = "Executes a SPARQL SELECT query on the underlying RDF repository")
-    @APIResponse(responseCode = "200", description = "SPARQL query result",
+    @Operation(operationId = "selectQuery", summary = "Executes a SPARQL SELECT query on the underlying RDF repository")
+    @APIResponse(responseCode = "200", description = "SPARQL select query result (bindings)",
         content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     @APIResponse(responseCode = "500", description = "Query evaluation error",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
-    public Response repositoryQuery(String query)
+    public Response selectQuery(String query,
+            @DefaultValue("100") @QueryParam("limit") long limit,
+            @DefaultValue("0") @QueryParam("offset") long offset,
+            @DefaultValue("false") @QueryParam("offset") boolean distinct)
     {
         try {
             final RDFStorage rdfst = storage.getStorage(userService.getUser(), repoId);
             if (rdfst != null)
             {
-                final List<BindingSet> bindings = rdfst.executeSafeTupleQuery(query);
+                if (limit > MAX_QUERY_LIMIT) limit = MAX_QUERY_LIMIT;
+                final List<BindingSet> bindings = rdfst.executeSparqlTupleQuery(query, distinct, limit, offset);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
                 return Response.ok(result).build();
             }
