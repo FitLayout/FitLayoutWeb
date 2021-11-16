@@ -5,6 +5,8 @@
  */
 package cz.vutbr.fit.layout.web.services;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,14 +16,17 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.Response.Status;
 
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -33,6 +38,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -43,6 +49,7 @@ import cz.vutbr.fit.layout.ontology.BOX;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.RDFStorage;
 import cz.vutbr.fit.layout.rdf.Serialization;
+import cz.vutbr.fit.layout.rdf.SparqlQueryResult;
 import cz.vutbr.fit.layout.rdf.StorageException;
 import cz.vutbr.fit.layout.web.data.QuadrupleData;
 import cz.vutbr.fit.layout.web.data.Result;
@@ -112,6 +119,67 @@ public class RepositoryResource
                 final List<BindingSet> bindings = rdfst.executeSparqlTupleQuery(query, distinct, limit, offset);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
                 return Response.ok(result).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        }
+    }
+    
+    @POST
+    @Path("/query")
+    @Consumes(Serialization.SPARQL_QUERY)
+    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML,
+        MediaType.TEXT_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+    @PermitAll
+    @Operation(operationId = "query", summary = "Executes any SPARQL query on the underlying RDF repository")
+    @APIResponse(responseCode = "200", description = "SELECT query result (tuple query)", //TODO add other types
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "SelectQueryResult")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    @APIResponse(responseCode = "500", description = "Query evaluation error",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response query(String query,
+            @DefaultValue("100") @QueryParam("limit") long limit,
+            @DefaultValue("0") @QueryParam("offset") long offset,
+            @DefaultValue("false") @QueryParam("offset") boolean distinct,
+            @HeaderParam("Accept") String accept)
+    {
+        try {
+            final RDFStorage rdfst = storage.getStorage(userService.getUser(), repoId);
+            if (rdfst != null)
+            {
+                if (limit > MAX_QUERY_LIMIT) limit = MAX_QUERY_LIMIT;
+                final SparqlQueryResult result = rdfst.executeSparqlQuery(query, distinct, limit, offset);
+                switch (result.getType())
+                {
+                    case TUPLE:
+                        final SelectQueryResult tRes = new SelectQueryResult(result.getTupleResult());
+                        return Response.ok(tRes).type(MediaType.APPLICATION_JSON).build();
+                    case GRAPH:
+                        final List<Statement> graph = result.getGraphResult();
+                        StreamingOutput stream = new StreamingOutput() {
+                            @Override
+                            public void write(OutputStream os) throws IOException, WebApplicationException {
+                                Serialization.statementsToStream(graph, os, accept);
+                            }
+                            
+                        };
+                        return Response.ok(stream).type(accept).build();
+                    case BOOLEAN:
+                        boolean val = result.getBooleanResult();
+                        return Response.ok(String.valueOf(val)).type(MediaType.TEXT_PLAIN).build();
+                }
+                return Response.serverError().build(); //should not happen
             }
             else
             {
