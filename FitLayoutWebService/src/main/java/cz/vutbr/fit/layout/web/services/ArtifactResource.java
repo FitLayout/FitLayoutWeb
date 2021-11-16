@@ -226,7 +226,7 @@ public class ArtifactResource
                         ServiceManager.setServiceParams(op, params.getParams());
                         Artifact newArtifact = ((ArtifactService) op).process(sourceArtifact);
                         repo.addArtifact(newArtifact);
-                        return Response.ok(new ResultValue(newArtifact.getIri().toString())).build();
+                        return Response.ok(new ResultValue(String.valueOf(newArtifact.getIri()))).build();
                     } catch (IllegalArgumentException e) {
                         e.printStackTrace();
                         return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
@@ -290,7 +290,7 @@ public class ArtifactResource
                 {
                     return Response.status(Status.NOT_FOUND)
                             .type(MediaType.APPLICATION_JSON)
-                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + ": " + iri.toString()))
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + ": " + String.valueOf(iri)))
                             .build();
                 }
             }
@@ -362,7 +362,7 @@ public class ArtifactResource
                         {
                             return Response.status(Status.NOT_FOUND)
                                     .type(MediaType.APPLICATION_JSON)
-                                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + " (missing source page): " + iri.toString()))
+                                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + " (missing source page): " + String.valueOf(iri)))
                                     .build();
                         }
                     }
@@ -370,7 +370,7 @@ public class ArtifactResource
                     {
                         return Response.status(Status.NOT_FOUND)
                                 .type(MediaType.APPLICATION_JSON)
-                                .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + " (or couldn't be serialized): " + iri.toString()))
+                                .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + " (or couldn't be serialized): " + String.valueOf(iri)))
                                 .build();
                     }
                 }
@@ -378,7 +378,7 @@ public class ArtifactResource
                 {
                     return Response.status(Status.NOT_FOUND)
                             .type(MediaType.APPLICATION_JSON)
-                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + ": " + iri.toString()))
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT + ": " + String.valueOf(iri)))
                             .build();
                 }
             }
@@ -456,7 +456,7 @@ public class ArtifactResource
             {
                 IRI iri = repo.getIriDecoder().decodeIri(iriValue);
                 repo.removeArtifact(iri);
-                return Response.ok(new ResultValue(iri.toString())).build();
+                return Response.ok(new ResultValue(String.valueOf(iri))).build();
             }
             else
             {

@@ -21,8 +21,8 @@ public class ArtifactServiceDescr extends ParametrizedServiceDescr
     {
         super(service);
         if (service.getConsumes() != null)
-            consumes = service.getConsumes().toString();
+            consumes = String.valueOf(service.getConsumes());
         if (service.getProduces() != null)
-            produces = service.getProduces().toString();
+            produces = String.valueOf(service.getProduces());
     }
 }

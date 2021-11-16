@@ -5,7 +5,6 @@
  */
 package cz.vutbr.fit.layout.web.services;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -138,7 +137,7 @@ public class RepositoryResource
             if (repo != null)
             {
                 final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
-                final String query = "SELECT ?p ?v WHERE { <" + iri.toString() + "> ?p ?v } LIMIT " + limit;
+                final String query = "SELECT ?p ?v WHERE { <" + String.valueOf(iri) + "> ?p ?v } LIMIT " + limit;
                 final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
                 return Response.ok(result).build();
@@ -174,7 +173,7 @@ public class RepositoryResource
             if (repo != null)
             {
                 final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
-                final String query = "SELECT ?v ?p WHERE { ?v ?p <" + iri.toString() + "> } LIMIT " + limit;
+                final String query = "SELECT ?v ?p WHERE { ?v ?p <" + String.valueOf(iri) + "> } LIMIT " + limit;
                 final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
                 return Response.ok(result).build();
@@ -261,7 +260,7 @@ public class RepositoryResource
                 final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
                 final IRI type = repo.getStorage().getSubjectType(iri);
                 if (type != null)
-                    return Response.ok(new ResultValue(type.toString())).build();
+                    return Response.ok(new ResultValue(String.valueOf(type))).build();
                 else
                     return Response.ok(new ResultValue("unknown")).build();
             }
@@ -296,7 +295,7 @@ public class RepositoryResource
             if (repo != null)
             {
                 final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
-                final String query = "SELECT ?p ?v WHERE { <" + iri.toString() + "> ?p ?v }";
+                final String query = "SELECT ?p ?v WHERE { <" + String.valueOf(iri) + "> ?p ?v }";
                 final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
                 final SubjectDescriptionResult result = new SubjectDescriptionResult(bindings);
                 return Response.ok(result).build();

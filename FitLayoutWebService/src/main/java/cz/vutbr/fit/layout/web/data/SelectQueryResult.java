@@ -97,7 +97,7 @@ public class SelectQueryResult
         public IriBinding(IRI iri)
         {
             type = "uri";
-            value = iri.toString();
+            value = String.valueOf(iri);
         }
     }
     
@@ -109,7 +109,7 @@ public class SelectQueryResult
         {
             type = "literal";
             value = stringval;
-            datatype = dataTypeIri.toString();
+            datatype = String.valueOf(dataTypeIri);
         }
     }
     
