@@ -40,6 +40,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
@@ -729,6 +730,49 @@ public class RepositoryResource
             return Response.status(Status.NOT_FOUND)
                     .type(MediaType.APPLICATION_JSON)
                     .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                    .build();
+        }
+    }
+    
+    //========================================================================================================
+    
+    @GET
+    @Path("/contexts")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "getContexts", summary = "Gets a list of contexts that have been defined for the repository")
+    @APIResponse(responseCode = "200", description = "Context query result",
+        content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+        content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response getContexts()
+    {
+        try {
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+            if (repo != null)
+            {
+                final List<Resource> nss = repo.getStorage().getContexts();
+                //transform to a binding set
+                final var vf = repo.getStorage().getValueFactory();
+                List<BindingSet> bindings = nss.stream()
+                        .map((ctx) -> new ListBindingSet(List.of("contextID"),
+                                                        vf.createIRI(String.valueOf(ctx))))
+                        .collect(Collectors.toList());
+                //send result
+                final SelectQueryResult result = new SelectQueryResult(bindings);
+                return Response.ok(result).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
                     .build();
         }
     }
