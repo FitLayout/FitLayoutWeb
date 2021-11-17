@@ -6,6 +6,7 @@
 package cz.vutbr.fit.layout.web.services;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +35,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -645,6 +647,88 @@ public class RepositoryResource
         {
             return Response.status(Status.BAD_REQUEST)
                     .entity(new ResultErrorMessage("prefix or namespace is missing"))
+                    .build();
+        }
+    }
+    
+    //========================================================================================================
+    
+    @GET
+    @Path("/statements")
+    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
+    @PermitAll
+    @Operation(operationId = "getStatements", summary = "Gets all RDF statements from the repository")
+    @APIResponses(value = {
+        @APIResponse(responseCode = "200-JSONLD", description = "RDF statements serialized in JSON-LD", 
+                content = @Content(mediaType = Serialization.JSONLD)),    
+        @APIResponse(responseCode = "200-TURTLE", description = "RDF statements serialized in TURTLE",
+                content = @Content(mediaType = Serialization.TURTLE)),   
+        @APIResponse(responseCode = "200-RDFXML", description = "RDF statements serialized in RDF/XML",
+                content = @Content(mediaType = Serialization.RDFXML)),
+        @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage")))    
+    })
+    public Response getStatements(@HeaderParam("Accept") String accept)
+    {
+        final RDFStorage rdfst = storage.getStorage(userService.getUser(), repoId);
+        if (rdfst != null)
+        {
+            StreamingOutput stream = new StreamingOutput() {
+                @Override
+                public void write(OutputStream os) throws IOException, WebApplicationException {
+                    Serialization.statementsToStream(rdfst.getRepository(), os, accept,
+                            null, null, null);
+                }
+            };
+            return Response.ok(stream)
+                    .type(accept)
+                    .build();
+        }        
+        else
+        {
+            return Response.status(Status.NOT_FOUND)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                    .build();
+        }
+    }
+    
+    @POST
+    @Path("/statements")
+    @Consumes({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "addStatements", summary = "Imports statements to the repository")
+    @APIResponse(responseCode = "200", description = "Statements added",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "400", description = "Invalid service parametres",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response addStatements(InputStream istream,
+            @QueryParam("context") String context,
+            @HeaderParam("Content-Type") String mimeType)
+    {
+        final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+        if (repo != null)
+        {
+            try {
+                if (context == null)
+                    context = "http://fake.url/import";
+                IRI contextIri = repo.getIriDecoder().decodeIri(context);
+                repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri);
+                return Response.ok(new ResultValue(null)).build();
+            } catch (IllegalArgumentException e) {
+                return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+            } catch (StorageException e) {
+                return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+            }
+        }        
+        else
+        {
+            return Response.status(Status.NOT_FOUND)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
                     .build();
         }
     }
