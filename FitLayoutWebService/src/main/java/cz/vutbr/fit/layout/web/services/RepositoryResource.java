@@ -666,19 +666,30 @@ public class RepositoryResource
                 content = @Content(mediaType = Serialization.TURTLE)),   
         @APIResponse(responseCode = "200-RDFXML", description = "RDF statements serialized in RDF/XML",
                 content = @Content(mediaType = Serialization.RDFXML)),
+        @APIResponse(responseCode = "200-NQUADS", description = "RDF statements serialized in N-Quads",
+                content = @Content(mediaType = Serialization.NQUADS)),
         @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
                 content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage")))    
     })
-    public Response getStatements(@HeaderParam("Accept") String accept)
+    public Response getStatements(@HeaderParam("Accept") String accept, @QueryParam("context") String context)
     {
-        final RDFStorage rdfst = storage.getStorage(userService.getUser(), repoId);
-        if (rdfst != null)
+        final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+        if (repo != null)
         {
             StreamingOutput stream = new StreamingOutput() {
                 @Override
                 public void write(OutputStream os) throws IOException, WebApplicationException {
-                    Serialization.statementsToStream(rdfst.getRepository(), os, accept,
-                            null, null, null);
+                    if (context == null)
+                    {
+                        Serialization.statementsToStream(repo.getStorage().getRepository(), os, accept,
+                                null, null, null);
+                    }
+                    else
+                    {
+                        IRI contextIri = repo.getIriDecoder().decodeIri(context);
+                        Serialization.statementsToStream(repo.getStorage().getRepository(), os, accept,
+                                null, null, null, contextIri);
+                    }
                 }
             };
             return Response.ok(stream)
