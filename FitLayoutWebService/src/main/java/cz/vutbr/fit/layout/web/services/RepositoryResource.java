@@ -656,7 +656,7 @@ public class RepositoryResource
     
     @GET
     @Path("/statements")
-    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
+    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NQUADS})
     @PermitAll
     @Operation(operationId = "getStatements", summary = "Gets all RDF statements from the repository")
     @APIResponses(value = {
@@ -696,7 +696,7 @@ public class RepositoryResource
     
     @POST
     @Path("/statements")
-    @Consumes({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
+    @Consumes({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NQUADS})
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(operationId = "addStatements", summary = "Imports statements to the repository")
