@@ -43,9 +43,11 @@ import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.ListBindingSet;
+import org.eclipse.rdf4j.rio.helpers.NTriplesUtil;
 
 import cz.vutbr.fit.layout.api.IRIDecoder;
 import cz.vutbr.fit.layout.ontology.BOX;
@@ -738,30 +740,45 @@ public class RepositoryResource
         @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
                 content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage")))    
     })
-    public Response getStatements(@HeaderParam("Accept") String accept, @QueryParam("context") String context)
+    public Response getStatements(@HeaderParam("Accept") String accept,
+            @QueryParam("subj") String subj,
+            @QueryParam("pred") String pred,
+            @QueryParam("obj") String obj,
+            @QueryParam("context") String context)
     {
         final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
         if (repo != null)
         {
-            StreamingOutput stream = new StreamingOutput() {
-                @Override
-                public void write(OutputStream os) throws IOException, WebApplicationException {
-                    if (context == null)
-                    {
-                        Serialization.statementsToStream(repo.getStorage().getRepository(), os, accept,
-                                null, null, null);
+            try {
+                final ValueFactory vf = repo.getStorage().getValueFactory();
+                Resource ssubj = (subj == null) ? null : NTriplesUtil.parseResource(subj, vf);
+                IRI spred = (pred == null) ? null : NTriplesUtil.parseURI(pred, vf);
+                Value sobj = (obj == null) ? null : NTriplesUtil.parseValue(obj, vf);
+                StreamingOutput stream = new StreamingOutput() {
+                    @Override
+                    public void write(OutputStream os) throws IOException, WebApplicationException {
+                        if (context == null)
+                        {
+                            Serialization.statementsToStream(repo.getStorage().getRepository(), os, accept,
+                                    ssubj, spred, sobj);
+                        }
+                        else
+                        {
+                            IRI contextIri = repo.getIriDecoder().decodeIri(context);
+                            Serialization.statementsToStream(repo.getStorage().getRepository(), os, accept,
+                                    ssubj, spred, sobj, contextIri);
+                        }
                     }
-                    else
-                    {
-                        IRI contextIri = repo.getIriDecoder().decodeIri(context);
-                        Serialization.statementsToStream(repo.getStorage().getRepository(), os, accept,
-                                null, null, null, contextIri);
-                    }
-                }
-            };
-            return Response.ok(stream)
-                    .type(accept)
-                    .build();
+                };
+                return Response.ok(stream)
+                        .type(accept)
+                        .build();
+                
+            } catch (IllegalArgumentException e) {
+                return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+            } catch (StorageException e) {
+                return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+            }
         }        
         else
         {
@@ -786,6 +803,7 @@ public class RepositoryResource
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response addStatements(InputStream istream,
             @QueryParam("context") String context,
+            @QueryParam("baseURI") String baseURI,
             @HeaderParam("Content-Type") String mimeType)
     {
         final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
@@ -795,7 +813,10 @@ public class RepositoryResource
                 if (context == null)
                     context = "http://fake.url/import";
                 IRI contextIri = repo.getIriDecoder().decodeIri(context);
-                repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri);
+                if (baseURI != null)
+                    repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri);
+                else
+                    repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri, baseURI);
                 return Response.ok(new ResultValue(null)).build();
             } catch (IllegalArgumentException e) {
                 return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
