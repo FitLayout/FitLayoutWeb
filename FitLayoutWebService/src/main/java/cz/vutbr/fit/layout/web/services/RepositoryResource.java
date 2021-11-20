@@ -789,6 +789,56 @@ public class RepositoryResource
         }
     }
     
+    @DELETE
+    @Path("/statements")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "deleteStatements", summary = "Deletes statements from the repository")
+    @APIResponse(responseCode = "200", description = "Statements deleted",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "400", description = "Invalid service parametres",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response deleteStatements(@QueryParam("subj") String subj,
+            @QueryParam("pred") String pred,
+            @QueryParam("obj") String obj,
+            @QueryParam("context") String context)
+    {
+        final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+        if (repo != null)
+        {
+            try {
+                final ValueFactory vf = repo.getStorage().getValueFactory();
+                Resource ssubj = (subj == null) ? null : NTriplesUtil.parseResource(subj, vf);
+                IRI spred = (pred == null) ? null : NTriplesUtil.parseURI(pred, vf);
+                Value sobj = (obj == null) ? null : NTriplesUtil.parseValue(obj, vf);
+                if (context == null)
+                {
+                    repo.getStorage().removeStatements(ssubj, spred, sobj);
+                }
+                else
+                {
+                    IRI contextIri = repo.getIriDecoder().decodeIri(context);
+                    repo.getStorage().removeStatements(ssubj, spred, sobj, contextIri);
+                }   
+                return Response.ok(new ResultValue(null)).build();
+                
+            } catch (IllegalArgumentException e) {
+                return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+            } catch (StorageException e) {
+                return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+            }
+        }        
+        else
+        {
+            return Response.status(Status.NOT_FOUND)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                    .build();
+        }
+    }
+    
     @POST
     @Path("/statements")
     @Consumes({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NQUADS})
