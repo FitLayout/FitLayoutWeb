@@ -520,6 +520,74 @@ public class RepositoryResource
         }
     }
     
+    @POST
+    @Path("/deleteQuads")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "deleteQuadruples", summary = "Removes a list of quadruples from the repository")
+    @APIResponse(responseCode = "200", description = "Quadruples removed",
+        content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "400", description = "Invalid quadruple specification",
+        content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response deleteQuadruples(List<QuadrupleData> quads)
+    {
+        if (quads != null)
+        {
+            try {
+                final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+                if (repo != null)
+                {
+                    final IRIDecoder dec = repo.getIriDecoder();
+                    int addCnt = 0;
+                    int skipCnt = 0;
+                    for (QuadrupleData quad : quads)
+                    {
+                        if (quad.isOk())
+                        {
+                            final IRI sIri = dec.decodeIri(quad.getS());
+                            final IRI pIri = dec.decodeIri(quad.getP());
+                            final IRI aIri = dec.decodeIri(quad.getArtifact());
+                            if (quad.getO() != null)
+                            {
+                                final IRI oIri = dec.decodeIri(quad.getO());
+                                repo.getStorage().remove(sIri, pIri, oIri, aIri);
+                            }
+                            else if (quad.getValue() != null)
+                            {
+                                repo.getStorage().removeValue(sIri, pIri, quad.getValue(), aIri);
+                            }
+                            addCnt++;
+                        }
+                        else
+                            skipCnt++;
+                    }
+                    return Response.ok(new ResultValue("Removed " + addCnt + " quads, " + skipCnt + " skipped")).build();
+                }
+                else
+                {
+                    return Response.status(Status.NOT_FOUND)
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                            .build();
+                }
+            } catch (StorageException e) {
+                return Response.serverError()
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(e.getMessage()))
+                        .build();
+            }
+        }
+        else
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage("A list of quadruples required"))
+                    .build();
+        }
+    }
+    
     //========================================================================================================
     
     @GET
