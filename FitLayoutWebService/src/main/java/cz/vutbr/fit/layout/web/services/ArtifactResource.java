@@ -44,6 +44,8 @@ import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cz.vutbr.fit.layout.api.ArtifactService;
 import cz.vutbr.fit.layout.api.ParametrizedOperation;
@@ -55,6 +57,7 @@ import cz.vutbr.fit.layout.model.Page;
 import cz.vutbr.fit.layout.ontology.BOX;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.Serialization;
+import cz.vutbr.fit.layout.rdf.model.RDFArtifact;
 import cz.vutbr.fit.layout.web.FLConfig;
 import cz.vutbr.fit.layout.web.StreamOutput;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
@@ -71,6 +74,8 @@ import cz.vutbr.fit.layout.web.ejb.UserService;
 @Tag(name = "artifact", description = "Artifact operations")
 public class ArtifactResource
 {
+    private static Logger log = LoggerFactory.getLogger(ArtifactResource.class);
+
     @Inject
     private UserService userService;
     @Inject
@@ -457,6 +462,57 @@ public class ArtifactResource
                 IRI iri = repo.getIriDecoder().decodeIri(iriValue);
                 repo.removeArtifact(iri);
                 return Response.ok(new ResultValue(String.valueOf(iri))).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
+        } catch (IllegalArgumentException e) {
+            return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+        } catch (RepositoryException | ServiceException e) {
+            return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+        }
+    }
+    
+    @GET
+    @Path("/refresh/{iri}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "refreshArtifact", summary = "Recomputes the computed artifact properties")
+    @APIResponse(responseCode = "200", description = "Artifact recomputed",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "404", description = "Repository or artifact with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response refreshArtifact(@PathParam("iri") String iriValue)
+    {
+        try {
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+            if (repo != null)
+            {
+                IRI iri = repo.getIriDecoder().decodeIri(iriValue);
+                // load the artifact
+                Artifact art = repo.getArtifact(iri);
+                if (art != null)
+                {
+                    // recompute values
+                    if (art instanceof RDFArtifact)
+                        ((RDFArtifact) art).recompute();
+                    else
+                        log.warn("Weird: {} is not an RDFArtifact?!", iri);
+                    // replace the artifact
+                    repo.replaceArtifact(iri, art);
+                    return Response.ok(new ResultValue(String.valueOf(iri))).build();
+                }
+                else
+                {
+                    return Response.status(Status.NOT_FOUND)
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_ARTIFACT))
+                            .build();
+                }
             }
             else
             {
