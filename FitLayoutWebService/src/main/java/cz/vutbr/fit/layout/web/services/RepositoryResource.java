@@ -141,6 +141,42 @@ public class RepositoryResource
     }
     
     @POST
+    @Path("/updateQuery")
+    @Consumes(Serialization.SPARQL_QUERY)
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "updateQuery", summary = "Executes a SPARQL UPDATE query on the underlying RDF repository")
+    @APIResponse(responseCode = "200", description = "Update performed",
+        content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    @APIResponse(responseCode = "500", description = "Query evaluation error",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response updateQuery(String query)
+    {
+        try {
+            final RDFStorage rdfst = storage.getStorage(userService.getUser(), repoId);
+            if (rdfst != null)
+            {
+                rdfst.execSparqlUpdate(query);
+                return Response.ok(new ResultValue(null)).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        }
+    }
+    
+    @POST
     @Path("/query")
     @Consumes(Serialization.SPARQL_QUERY)
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML,
