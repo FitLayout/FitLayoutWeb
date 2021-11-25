@@ -78,7 +78,7 @@ public class ServiceResource
     
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
+    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NTRIPLES, Serialization.NQUADS})
     @PermitAll
     @Operation(operationId = "invoke", summary = "Invokes a service and returns the resulting artifact")
     @APIResponse(responseCode = "200", description = "The complete artifact data")    

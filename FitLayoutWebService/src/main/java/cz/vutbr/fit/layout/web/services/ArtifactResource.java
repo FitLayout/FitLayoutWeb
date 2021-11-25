@@ -141,7 +141,7 @@ public class ArtifactResource
     
     @GET
     @Path("/")
-    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
+    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NTRIPLES, Serialization.NQUADS})
     @PermitAll
     @Operation(operationId = "getArtifactsInfo", summary = "Retrieves information about all artifacts in the repository (artifact contents not included).")
     @APIResponses(value = {
@@ -151,6 +151,10 @@ public class ArtifactResource
                     content = @Content(mediaType = Serialization.TURTLE)),   
             @APIResponse(responseCode = "200-RDFXML", description = "The artifacts RDF description serialized in RDF/XML",
                     content = @Content(mediaType = Serialization.RDFXML)),
+            @APIResponse(responseCode = "200-NTRIPLES", description = "The artifacts RDF description serialized in N-TRIPLES",
+                    content = @Content(mediaType = Serialization.NTRIPLES)),
+            @APIResponse(responseCode = "200-NQUADS", description = "The artifacts RDF description serialized in N-QUADS",
+                    content = @Content(mediaType = Serialization.NQUADS)),
             @APIResponse(responseCode = "400", description = "Invalid service parametres",
                 content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage"))),
             @APIResponse(responseCode = "404", description = "Repository with the given ID not found or could not be serialized",
@@ -410,6 +414,7 @@ public class ArtifactResource
     @GET
     @Path("/item/{iri}")
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML,
+        Serialization.NTRIPLES, Serialization.NQUADS,
         MediaType.TEXT_XML, MediaType.TEXT_HTML, "image/png"})
     @PermitAll
     @Operation(operationId = "getArtifact", summary = "Gets a complete artifact including its contents identified by its IRI")
@@ -420,6 +425,10 @@ public class ArtifactResource
                 content = @Content(mediaType = Serialization.TURTLE)),   
         @APIResponse(responseCode = "200-RDFXML", description = "The complete artifact RDF description serialized in RDF/XML",
                 content = @Content(mediaType = Serialization.RDFXML)),
+        @APIResponse(responseCode = "200-NTRIPLES", description = "The complete artifact RDF description serialized in N-TRIPLES",
+            content = @Content(mediaType = Serialization.NTRIPLES)),
+        @APIResponse(responseCode = "200-NQUADS", description = "The complete artifact RDF description serialized in N-QUADS",
+            content = @Content(mediaType = Serialization.NQUADS)),
         @APIResponse(responseCode = "200-XML", description = "The complete artifact serialized in XML",
                 content = @Content(mediaType = MediaType.TEXT_XML)),
         @APIResponse(responseCode = "200-HTML", description = "The complete artifact serialized in HTML",
@@ -433,15 +442,10 @@ public class ArtifactResource
     })
     public Response getArtifact(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
     {
-        switch (accept)
-        {
-            case Serialization.JSONLD:
-            case Serialization.TURTLE:
-            case Serialization.RDFXML:
-                return serializeArtifactModel(iriValue, accept);
-            default:
-                return serializeArtifact(iriValue, accept);
-        }
+        if (Serialization.rdfFormats.contains(accept))
+            return serializeArtifactModel(iriValue, accept);
+        else
+            return serializeArtifact(iriValue, accept);
     }
     
     @DELETE
@@ -562,7 +566,7 @@ public class ArtifactResource
     
     @GET
     @Path("/info/{iri}")
-    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML})
+    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NTRIPLES, Serialization.NQUADS})
     @PermitAll
     @Operation(operationId = "getArtifactInfo", summary = "Retrieves information about an artifact identified by its IRI (artifact content not included).")
     @APIResponses(value = {
@@ -572,6 +576,10 @@ public class ArtifactResource
                     content = @Content(mediaType = Serialization.TURTLE)),   
             @APIResponse(responseCode = "200-RDFXML", description = "The artifact RDF description serialized in RDF/XML",
                     content = @Content(mediaType = Serialization.RDFXML)),
+            @APIResponse(responseCode = "200-NTRIPLES", description = "The artifact RDF description serialized in N-TRIPLES",
+                    content = @Content(mediaType = Serialization.NTRIPLES)),
+            @APIResponse(responseCode = "200-NQUADS", description = "The artifact RDF description serialized in N-QUADS",
+                    content = @Content(mediaType = Serialization.NQUADS)),
             @APIResponse(responseCode = "400", description = "Invalid IRI provided",
                 content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage"))),    
             @APIResponse(responseCode = "404", description = "Repository or service with the given ID not found",

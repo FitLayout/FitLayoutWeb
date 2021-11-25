@@ -180,11 +180,22 @@ public class RepositoryResource
     @Path("/query")
     @Consumes(Serialization.SPARQL_QUERY)
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML,
+        Serialization.NTRIPLES, Serialization.NQUADS,
         MediaType.TEXT_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @PermitAll
     @Operation(operationId = "query", summary = "Executes any SPARQL query on the underlying RDF repository")
-    @APIResponse(responseCode = "200", description = "SELECT query result (tuple query)", //TODO add other types
+    @APIResponse(responseCode = "200", description = "SELECT query result (tuple query)",
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "SelectQueryResult")))    
+    @APIResponse(responseCode = "200-JSONLD", description = "CONSTRUCT query result (graph query) serialized in JSON-LD", 
+        content = @Content(mediaType = Serialization.JSONLD))    
+    @APIResponse(responseCode = "200-TURTLE", description = "CONSTRUCT query result (graph query) serialized in TURTLE",
+        content = @Content(mediaType = Serialization.TURTLE))   
+    @APIResponse(responseCode = "200-RDFXML", description = "CONSTRUCT query result (graph query) serialized in RDF/XML",
+        content = @Content(mediaType = Serialization.RDFXML))
+    @APIResponse(responseCode = "200-NTRIPLES", description = "CONSTRUCT query result (graph query) serialized in N-TRIPLES",
+        content = @Content(mediaType = Serialization.NTRIPLES))
+    @APIResponse(responseCode = "200-NQUADS", description = "CONSTRUCT query result (graph query) serialized in N-QUADS",
+        content = @Content(mediaType = Serialization.NQUADS))
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     @APIResponse(responseCode = "500", description = "Query evaluation error",
@@ -208,14 +219,24 @@ public class RepositoryResource
                         return Response.ok(tRes).type(MediaType.APPLICATION_JSON).build();
                     case GRAPH:
                         final List<Statement> graph = result.getGraphResult();
-                        StreamingOutput stream = new StreamingOutput() {
-                            @Override
-                            public void write(OutputStream os) throws IOException, WebApplicationException {
-                                Serialization.statementsToStream(graph, os, accept);
-                            }
-                            
-                        };
-                        return Response.ok(stream).type(accept).build();
+                        final String mime = (accept == null) ? Serialization.NTRIPLES : accept;
+                        if (Serialization.rdfFormats.contains(mime))
+                        {
+                            StreamingOutput stream = new StreamingOutput() {
+                                @Override
+                                public void write(OutputStream os) throws IOException, WebApplicationException {
+                                    Serialization.statementsToStream(graph, os, mime);
+                                }
+                            };
+                            return Response.ok(stream).type(accept).build();
+                        }
+                        else
+                        {
+                            return Response.status(Status.NOT_ACCEPTABLE)
+                                    .type(MediaType.APPLICATION_JSON)
+                                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NOT_ACCEPTABLE))
+                                    .build();
+                        }
                     case BOOLEAN:
                         boolean val = result.getBooleanResult();
                         return Response.ok(String.valueOf(val)).type(MediaType.TEXT_PLAIN).build();
@@ -829,7 +850,7 @@ public class RepositoryResource
     
     @GET
     @Path("/statements")
-    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NQUADS})
+    @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NTRIPLES, Serialization.NQUADS})
     @PermitAll
     @Operation(operationId = "getStatements", summary = "Gets all RDF statements from the repository")
     @APIResponses(value = {
@@ -839,6 +860,8 @@ public class RepositoryResource
                 content = @Content(mediaType = Serialization.TURTLE)),   
         @APIResponse(responseCode = "200-RDFXML", description = "RDF statements serialized in RDF/XML",
                 content = @Content(mediaType = Serialization.RDFXML)),
+        @APIResponse(responseCode = "200-NTRIPLES", description = "RDF statements serialized in N-Triples",
+            content = @Content(mediaType = Serialization.NTRIPLES)),
         @APIResponse(responseCode = "200-NQUADS", description = "RDF statements serialized in N-Quads",
                 content = @Content(mediaType = Serialization.NQUADS)),
         @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
@@ -945,7 +968,7 @@ public class RepositoryResource
     
     @POST
     @Path("/statements")
-    @Consumes({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NQUADS})
+    @Consumes({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NTRIPLES, Serialization.NQUADS})
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Operation(operationId = "addStatements", summary = "Imports statements to the repository")
