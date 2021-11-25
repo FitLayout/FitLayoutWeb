@@ -56,6 +56,7 @@ import cz.vutbr.fit.layout.rdf.RDFStorage;
 import cz.vutbr.fit.layout.rdf.Serialization;
 import cz.vutbr.fit.layout.rdf.SparqlQueryResult;
 import cz.vutbr.fit.layout.rdf.StorageException;
+import cz.vutbr.fit.layout.web.data.BooleanQueryResult;
 import cz.vutbr.fit.layout.web.data.QuadrupleData;
 import cz.vutbr.fit.layout.web.data.Result;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
@@ -74,6 +75,8 @@ import cz.vutbr.fit.layout.web.ejb.UserService;
 @Tag(name = "repository", description = "RDF repository opertations")
 public class RepositoryResource
 {
+    private static final String TEXT_BOOLEAN = "text/boolean";
+
     /** Maximal value of a query limit. */
     private static final long MAX_QUERY_LIMIT = 2048;
     
@@ -181,7 +184,7 @@ public class RepositoryResource
     @Consumes(Serialization.SPARQL_QUERY)
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML,
         Serialization.NTRIPLES, Serialization.NQUADS,
-        MediaType.TEXT_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+        MediaType.TEXT_XML, MediaType.APPLICATION_JSON, TEXT_BOOLEAN})
     @PermitAll
     @Operation(operationId = "query", summary = "Executes any SPARQL query on the underlying RDF repository")
     @APIResponse(responseCode = "200", description = "SELECT query result (tuple query)",
@@ -196,6 +199,10 @@ public class RepositoryResource
         content = @Content(mediaType = Serialization.NTRIPLES))
     @APIResponse(responseCode = "200-NQUADS", description = "CONSTRUCT query result (graph query) serialized in N-QUADS",
         content = @Content(mediaType = Serialization.NQUADS))
+    @APIResponse(responseCode = "200-JSON", description = "ASK query result (boolean query) serialized in JSON",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON))
+    @APIResponse(responseCode = "200-TEXT", description = "ASK query result (boolean query) serialized in text",
+        content = @Content(mediaType = TEXT_BOOLEAN))
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     @APIResponse(responseCode = "500", description = "Query evaluation error",
@@ -219,7 +226,7 @@ public class RepositoryResource
                         return Response.ok(tRes).type(MediaType.APPLICATION_JSON).build();
                     case GRAPH:
                         final List<Statement> graph = result.getGraphResult();
-                        final String mime = (accept == null) ? Serialization.NTRIPLES : accept;
+                        final String mime = (accept == null || MediaType.WILDCARD.equals(accept)) ? Serialization.NTRIPLES : accept;
                         if (Serialization.rdfFormats.contains(mime))
                         {
                             StreamingOutput stream = new StreamingOutput() {
@@ -239,7 +246,15 @@ public class RepositoryResource
                         }
                     case BOOLEAN:
                         boolean val = result.getBooleanResult();
-                        return Response.ok(String.valueOf(val)).type(MediaType.TEXT_PLAIN).build();
+                        if (accept == null || MediaType.WILDCARD.equals(accept) || MediaType.APPLICATION_JSON.equals(accept))
+                            return Response.ok(new BooleanQueryResult(val)).type(MediaType.APPLICATION_JSON).build();
+                        else if (TEXT_BOOLEAN.equals(accept))
+                            return Response.ok(String.valueOf(val)).type(TEXT_BOOLEAN).build();
+                        else
+                            return Response.status(Status.NOT_ACCEPTABLE)
+                                    .type(MediaType.APPLICATION_JSON)
+                                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NOT_ACCEPTABLE))
+                                    .build();
                 }
                 return Response.serverError().build(); //should not happen
             }

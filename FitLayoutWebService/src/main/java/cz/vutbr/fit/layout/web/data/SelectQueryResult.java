@@ -49,6 +49,11 @@ public class SelectQueryResult
     {
         public List<String> vars;
 
+        public ResultHeader()
+        {
+            this.vars = null;
+        }
+        
         public ResultHeader(Collection<String> vars)
         {
             this.vars = new ArrayList<>(vars);
