@@ -10,6 +10,8 @@ import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.bcs.BCSProvider;
 import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.impl.DefaultTag;
+import cz.vutbr.fit.layout.patterns.AreaConnectionProvider;
+import cz.vutbr.fit.layout.patterns.TextChunkConnectionProvider;
 import cz.vutbr.fit.layout.provider.OperatorWrapperProvider;
 import cz.vutbr.fit.layout.provider.VisualBoxTreeProvider;
 import cz.vutbr.fit.layout.puppeteer.PuppeteerTreeProvider;
@@ -85,6 +87,10 @@ public class FLConfig
         TagEntitiesOperator tagOp = new TagEntitiesOperator();
         tagOp.addTaggers(tagConfig.getTaggers().values());
         addAreaTreeOperator(sm, tagOp);
+        
+        //patterns
+        sm.addArtifactService(new AreaConnectionProvider());
+        sm.addArtifactService(new TextChunkConnectionProvider());
         
         //use RDF storage as the artifact repository
         if (repo != null)
