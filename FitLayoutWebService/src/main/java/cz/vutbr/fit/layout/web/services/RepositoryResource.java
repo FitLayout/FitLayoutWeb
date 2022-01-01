@@ -1127,4 +1127,32 @@ public class RepositoryResource
         }
     }
     
+    @GET
+    @Path("/forceInitRepo")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "forceInitRepo", summary = "Re-initializes an empty repository with the necessary RDF metadata (schemas)")
+    @APIResponse(responseCode = "200", description = "Repository initialized",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response forceInitRepo()
+    {
+        final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+        if (repo != null)
+        {
+            repo.clearMetadata();
+            if (repo.initMetadata())
+                return Response.ok(new ResultValue("ok")).build();
+            else
+                return Response.serverError().entity(new ResultErrorMessage("error during repository initialization")).build();
+        }
+        else
+        {
+            return Response.status(Status.NOT_FOUND)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                    .build();
+        }
+    }
 }
