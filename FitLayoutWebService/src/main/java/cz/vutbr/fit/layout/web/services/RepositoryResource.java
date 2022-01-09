@@ -896,17 +896,17 @@ public class RepositoryResource
                 Resource ssubj = (subj == null) ? null : NTriplesUtil.parseResource(subj, vf);
                 IRI spred = (pred == null) ? null : NTriplesUtil.parseURI(pred, vf);
                 Value sobj = (obj == null) ? null : NTriplesUtil.parseValue(obj, vf);
+                IRI contextIri = (context == null) ? null : repo.getIriDecoder().decodeIri(context);
                 StreamingOutput stream = new StreamingOutput() {
                     @Override
                     public void write(OutputStream os) throws IOException, WebApplicationException {
-                        if (context == null)
+                        if (contextIri == null)
                         {
                             Serialization.statementsToStream(repo.getStorage().getRepository(), os, accept,
                                     ssubj, spred, sobj);
                         }
                         else
                         {
-                            IRI contextIri = repo.getIriDecoder().decodeIri(context);
                             Serialization.statementsToStream(repo.getStorage().getRepository(), os, accept,
                                     ssubj, spred, sobj, contextIri);
                         }
@@ -917,9 +917,15 @@ public class RepositoryResource
                         .build();
                 
             } catch (IllegalArgumentException e) {
-                return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+                return Response.status(Status.BAD_REQUEST)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(e.getMessage()))
+                        .build();
             } catch (StorageException e) {
-                return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+                return Response.serverError()
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(e.getMessage()))
+                        .build();
             }
         }        
         else
@@ -955,13 +961,13 @@ public class RepositoryResource
                 Resource ssubj = (subj == null) ? null : NTriplesUtil.parseResource(subj, vf);
                 IRI spred = (pred == null) ? null : NTriplesUtil.parseURI(pred, vf);
                 Value sobj = (obj == null) ? null : NTriplesUtil.parseValue(obj, vf);
-                if (context == null)
+                IRI contextIri = (context == null) ? null : repo.getIriDecoder().decodeIri(context);
+                if (contextIri == null)
                 {
                     repo.getStorage().removeStatements(ssubj, spred, sobj);
                 }
                 else
                 {
-                    IRI contextIri = repo.getIriDecoder().decodeIri(context);
                     repo.getStorage().removeStatements(ssubj, spred, sobj, contextIri);
                 }   
                 return Response.ok(new ResultValue(null)).build();
