@@ -75,6 +75,7 @@ import cz.vutbr.fit.layout.web.ejb.UserService;
 @Tag(name = "repository", description = "RDF repository opertations")
 public class RepositoryResource
 {
+    private static final String DEFAULT_CONTEXT = "http://fake.url/import";
     private static final String TEXT_BOOLEAN = "text/boolean";
 
     /** Maximal value of a query limit. */
@@ -992,7 +993,7 @@ public class RepositoryResource
     @Consumes({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NTRIPLES, Serialization.NQUADS})
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(operationId = "addStatements", summary = "Imports statements to the repository")
+    @Operation(operationId = "addStatements", summary = "Imports (adds) statements to the repository")
     @APIResponse(responseCode = "200", description = "Statements added",
             content = @Content(schema = @Schema(ref = "ResultValue")))    
     @APIResponse(responseCode = "400", description = "Invalid service parametres",
@@ -1008,13 +1009,7 @@ public class RepositoryResource
         if (repo != null)
         {
             try {
-                if (context == null)
-                    context = "http://fake.url/import";
-                IRI contextIri = repo.getIriDecoder().decodeIri(context);
-                if (baseURI != null)
-                    repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri);
-                else
-                    repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri, baseURI);
+                importStream(repo, istream, context, baseURI, mimeType);
                 return Response.ok(new ResultValue(null)).build();
             } catch (IllegalArgumentException e) {
                 return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
@@ -1029,6 +1024,56 @@ public class RepositoryResource
                     .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
                     .build();
         }
+    }
+
+    @PUT
+    @Path("/statements")
+    @Consumes({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NTRIPLES, Serialization.NQUADS})
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "replaceStatements", summary = "Replaces all statements in the repository")
+    @APIResponse(responseCode = "200", description = "Statements replaced",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "400", description = "Invalid service parametres",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response replaceStatements(InputStream istream,
+            @QueryParam("context") String context,
+            @QueryParam("baseURI") String baseURI,
+            @HeaderParam("Content-Type") String mimeType)
+    {
+        final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+        if (repo != null)
+        {
+            try {
+                repo.clear();
+                importStream(repo, istream, context, baseURI, mimeType);
+                return Response.ok(new ResultValue(null)).build();
+            } catch (IllegalArgumentException e) {
+                return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+            } catch (StorageException e) {
+                return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
+            }
+        }        
+        else
+        {
+            return Response.status(Status.NOT_FOUND)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                    .build();
+        }
+    }
+
+    private void importStream(final RDFArtifactRepository repo, InputStream istream, String context, String baseURI, String mimeType)
+    {
+        if (context == null)
+            context = DEFAULT_CONTEXT;
+        IRI contextIri = repo.getIriDecoder().decodeIri(context);
+        if (baseURI != null)
+            repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri);
+        else
+            repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri, baseURI);
     }
     
     //========================================================================================================
