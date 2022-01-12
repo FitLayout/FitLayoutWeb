@@ -1009,7 +1009,7 @@ public class RepositoryResource
         if (repo != null)
         {
             try {
-                importStream(repo, istream, context, baseURI, mimeType);
+                importStream(repo, istream, context, baseURI, mimeType, false);
                 return Response.ok(new ResultValue(null)).build();
             } catch (IllegalArgumentException e) {
                 return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
@@ -1047,8 +1047,7 @@ public class RepositoryResource
         if (repo != null)
         {
             try {
-                repo.clear();
-                importStream(repo, istream, context, baseURI, mimeType);
+                importStream(repo, istream, context, baseURI, mimeType, true);
                 return Response.ok(new ResultValue(null)).build();
             } catch (IllegalArgumentException e) {
                 return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
@@ -1065,11 +1064,16 @@ public class RepositoryResource
         }
     }
 
-    private void importStream(final RDFArtifactRepository repo, InputStream istream, String context, String baseURI, String mimeType)
+    private void importStream(final RDFArtifactRepository repo, InputStream istream, String context, 
+            String baseURI, String mimeType, boolean replace)
     {
         if (context == null)
             context = DEFAULT_CONTEXT;
         IRI contextIri = repo.getIriDecoder().decodeIri(context);
+        
+        if (replace)
+            repo.clearContext(contextIri);
+        
         if (baseURI != null)
             repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri);
         else
