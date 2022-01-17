@@ -29,7 +29,7 @@ import cz.vutbr.fit.layout.web.FLConfig;
 import cz.vutbr.fit.layout.web.data.ParametrizedServiceDescr;
 
 /**
- * Area operator management and configuration.
+ * Global area operator management and configuration.
  * 
  * @author burgetr
  */
