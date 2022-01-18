@@ -83,7 +83,7 @@ public class FLConfig
             // configure text module using RDF taggers
             sm.addArtifactService(new TextChunksProvider(tc));
             TagEntitiesOperator tagOp = new TagEntitiesOperator();
-            tagOp.addTaggers(tc.getTaggers().values());
+            tagOp.setTaggers(tc.getTaggers());
             addAreaTreeOperator(sm, tagOp);
         }
 
@@ -95,7 +95,7 @@ public class FLConfig
         tagConfig.setTagger(new DefaultTag("FitLayout.TextTag", "locations"), new LocationsTagger());
         sm.addArtifactService(new TextChunksProvider(tagConfig));
         TagEntitiesOperator tagOp = new TagEntitiesOperator();
-        tagOp.addTaggers(tagConfig.getTaggers().values());
+        tagOp.addTaggers(tagConfig.getTaggers());
         addAreaTreeOperator(sm, tagOp);*/
         
         //patterns

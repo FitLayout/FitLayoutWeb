@@ -7,7 +7,7 @@ package cz.vutbr.fit.layout.web.data;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
-import cz.vutbr.fit.layout.rdf.model.RDFTag;
+import cz.vutbr.fit.layout.model.Tag;
 
 /**
  * 
@@ -24,11 +24,11 @@ public class TagInfo
     {
     }
     
-    public TagInfo(RDFTag src)
+    public TagInfo(Tag src)
     {
         this.iri = String.valueOf(src.getIri());
         this.type = src.getType();
-        this.name = src.getValue();
+        this.name = src.getName();
     }
 
     public String getIri()
