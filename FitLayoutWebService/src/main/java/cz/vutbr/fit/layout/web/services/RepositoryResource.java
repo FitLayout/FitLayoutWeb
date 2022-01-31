@@ -1067,17 +1067,29 @@ public class RepositoryResource
     private void importStream(final RDFArtifactRepository repo, InputStream istream, String context, 
             String baseURI, String mimeType, boolean replace)
     {
-        if (context == null)
-            context = DEFAULT_CONTEXT;
-        IRI contextIri = repo.getIriDecoder().decodeIri(context);
-        
-        if (replace)
-            repo.clearContext(contextIri);
-        
-        if (baseURI != null)
-            repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri);
+        if (context == null && Serialization.NQUADS.equals(mimeType))
+        {
+            // Do not use default context for NQUADS - try to use the context information contained in the file
+            if (replace)
+                repo.clear();
+            if (baseURI != null)
+                repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType));
+            else
+                repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), baseURI);
+        }
         else
-            repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri, baseURI);
+        {
+            if (context == null)
+                context = DEFAULT_CONTEXT;
+            IRI contextIri = repo.getIriDecoder().decodeIri(context);
+            
+            if (replace)
+                repo.clearContext(contextIri);
+            if (baseURI != null)
+                repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri);
+            else
+                repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri, baseURI);
+        }
     }
     
     //========================================================================================================
