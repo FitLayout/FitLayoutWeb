@@ -442,10 +442,11 @@ public class ArtifactResource
     })
     public Response getArtifact(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
     {
-        if (Serialization.rdfFormats.contains(accept))
-            return serializeArtifactModel(iriValue, accept);
+        final String mime = (accept == null) ? Serialization.JSONLD : accept;
+        if (Serialization.rdfFormats.contains(mime))
+            return serializeArtifactModel(iriValue, mime);
         else
-            return serializeArtifact(iriValue, accept);
+            return serializeArtifact(iriValue, mime);
     }
     
     @DELETE
