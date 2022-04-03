@@ -75,7 +75,7 @@ import cz.vutbr.fit.layout.web.ejb.UserService;
 @Tag(name = "repository", description = "RDF repository opertations")
 public class RepositoryResource
 {
-    private static final String DEFAULT_CONTEXT = "http://fake.url/import";
+    private static final String DEFAULT_CONTEXT = "http://unknown.url/import";
     private static final String TEXT_BOOLEAN = "text/boolean";
 
     /** Maximal value of a query limit. */
@@ -897,7 +897,13 @@ public class RepositoryResource
                 Resource ssubj = (subj == null) ? null : NTriplesUtil.parseResource(subj, vf);
                 IRI spred = (pred == null) ? null : NTriplesUtil.parseURI(pred, vf);
                 Value sobj = (obj == null) ? null : NTriplesUtil.parseValue(obj, vf);
-                IRI contextIri = (context == null) ? null : repo.getIriDecoder().decodeIri(context);
+                boolean nullContext = "null".equals(context); // explicit null context provided (apply to triples with no context)
+                final IRI contextIri;
+                if (!nullContext)
+                    contextIri = (context == null) ? null : NTriplesUtil.parseURI(context, vf);
+                else
+                    contextIri = null;
+                
                 StreamingOutput stream = new StreamingOutput() {
                     @Override
                     public void write(OutputStream os) throws IOException, WebApplicationException {
@@ -959,15 +965,22 @@ public class RepositoryResource
         {
             try {
                 final ValueFactory vf = repo.getStorage().getValueFactory();
+                // decode params
                 Resource ssubj = (subj == null) ? null : NTriplesUtil.parseResource(subj, vf);
                 IRI spred = (pred == null) ? null : NTriplesUtil.parseURI(pred, vf);
                 Value sobj = (obj == null) ? null : NTriplesUtil.parseValue(obj, vf);
-                IRI contextIri = (context == null) ? null : repo.getIriDecoder().decodeIri(context);
-                if (contextIri == null)
+                boolean nullContext = "null".equals(context); // explicit null context provided (apply to triples with no context)
+                final IRI contextIri;
+                if (!nullContext)
+                    contextIri = (context == null) ? null : NTriplesUtil.parseURI(context, vf);
+                else
+                    contextIri = null;
+                
+                if (contextIri == null && !nullContext) // context not provided - apply for all contexts
                 {
                     repo.getStorage().removeStatements(ssubj, spred, sobj);
                 }
-                else
+                else // context provided (or explicit null context)
                 {
                     repo.getStorage().removeStatements(ssubj, spred, sobj, contextIri);
                 }   
@@ -1067,6 +1080,14 @@ public class RepositoryResource
     private void importStream(final RDFArtifactRepository repo, InputStream istream, String context, 
             String baseURI, String mimeType, boolean replace)
     {
+        final ValueFactory vf = repo.getStorage().getValueFactory();
+        boolean nullContext = "null".equals(context); // explicit null context provided (apply to triples with no context)
+        IRI contextIri;
+        if (!nullContext)
+            contextIri = (context == null) ? null : NTriplesUtil.parseURI(context, vf);
+        else
+            contextIri = null;
+        
         if (context == null && Serialization.NQUADS.equals(mimeType))
         {
             // Do not use default context for NQUADS - try to use the context information contained in the file
@@ -1079,9 +1100,8 @@ public class RepositoryResource
         }
         else
         {
-            if (context == null)
-                context = DEFAULT_CONTEXT;
-            IRI contextIri = repo.getIriDecoder().decodeIri(context);
+            if (contextIri == null)
+                contextIri = repo.getIriDecoder().decodeIri(DEFAULT_CONTEXT);
             
             if (replace)
                 repo.clearContext(contextIri);
