@@ -118,7 +118,7 @@ public class RepositoryResource
     public Response selectQuery(String query,
             @DefaultValue("100") @QueryParam("limit") long limit,
             @DefaultValue("0") @QueryParam("offset") long offset,
-            @DefaultValue("false") @QueryParam("offset") boolean distinct)
+            @DefaultValue("false") @QueryParam("distinct") boolean distinct)
     {
         try {
             final RDFStorage rdfst = storage.getStorage(userService.getUser(), repoId);
@@ -211,7 +211,7 @@ public class RepositoryResource
     public Response query(String query,
             @DefaultValue("100") @QueryParam("limit") long limit,
             @DefaultValue("0") @QueryParam("offset") long offset,
-            @DefaultValue("false") @QueryParam("offset") boolean distinct,
+            @DefaultValue("false") @QueryParam("distinct") boolean distinct,
             @HeaderParam("Accept") String accept)
     {
         try {
