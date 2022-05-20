@@ -74,13 +74,6 @@
 			<version>${fitlayout.version}</version>
 		</dependency>
 		
-		<!-- rdf4j dependencies -->
-		<dependency>
-			<groupId>com.github.jsonld-java</groupId>
-			<artifactId>jsonld-java</artifactId>
-			<version>0.13.0</version>
-		</dependency>
-
 		<!-- logging -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
