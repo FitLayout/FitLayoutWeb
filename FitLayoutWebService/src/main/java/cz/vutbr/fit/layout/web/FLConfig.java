@@ -12,6 +12,7 @@ import cz.vutbr.fit.layout.api.AreaTreeOperator;
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.bcs.BCSProvider;
 import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
+import cz.vutbr.fit.layout.map.op.TagByExampleOperator;
 import cz.vutbr.fit.layout.patterns.AreaConnectionProvider;
 import cz.vutbr.fit.layout.patterns.TextChunkConnectionProvider;
 import cz.vutbr.fit.layout.provider.OperatorWrapperProvider;
@@ -75,6 +76,7 @@ public class FLConfig
         addAreaTreeOperator(sm, new SuperAreaOperator());
         addAreaTreeOperator(sm, new GroupByDOMOperator());
         addAreaTreeOperator(sm, new HomogeneousLeafOperator());
+        addAreaTreeOperator(sm, new TagByExampleOperator());
         
         if (repo != null)
         {

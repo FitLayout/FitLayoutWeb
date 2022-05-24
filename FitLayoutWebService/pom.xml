@@ -73,6 +73,11 @@
 			<artifactId>fitlayout-patterns</artifactId>
 			<version>${fitlayout.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>cz.vutbr.fit.layout</groupId>
+			<artifactId>fitlayout-mapping</artifactId>
+			<version>${fitlayout.version}</version>
+		</dependency>
 		
 		<!-- logging -->
 		<dependency>
