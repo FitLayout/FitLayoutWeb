@@ -12,7 +12,7 @@ import cz.vutbr.fit.layout.api.AreaTreeOperator;
 import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.bcs.BCSProvider;
 import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
-import cz.vutbr.fit.layout.map.op.MapByExamplesOperator;
+import cz.vutbr.fit.layout.map.chunks.MetadataTextChunksProvider;
 import cz.vutbr.fit.layout.patterns.AreaConnectionProvider;
 import cz.vutbr.fit.layout.patterns.TextChunkConnectionProvider;
 import cz.vutbr.fit.layout.provider.OperatorWrapperProvider;
@@ -76,8 +76,8 @@ public class FLConfig
         addAreaTreeOperator(sm, new SuperAreaOperator());
         addAreaTreeOperator(sm, new GroupByDOMOperator());
         addAreaTreeOperator(sm, new HomogeneousLeafOperator());
-        addAreaTreeOperator(sm, new MapByExamplesOperator());
         
+        //text module when the tags are configured in the repo metadata
         if (repo != null)
         {
             RDFTaggerConfig tc = new RDFTaggerConfig(repo);
@@ -89,7 +89,6 @@ public class FLConfig
             addAreaTreeOperator(sm, tagOp);
         }
 
-        //text module
         /*FixedTaggerConfig tagConfig = new FixedTaggerConfig();
         tagConfig.setTagger(new DefaultTag("FitLayout.TextTag", "date"), new DateTagger());
         tagConfig.setTagger(new DefaultTag("FitLayout.TextTag", "time"), new TimeTagger());
@@ -99,6 +98,9 @@ public class FLConfig
         TagEntitiesOperator tagOp = new TagEntitiesOperator();
         tagOp.addTaggers(tagConfig.getTaggers());
         addAreaTreeOperator(sm, tagOp);*/
+        
+        //page metadata-based text chunks
+        sm.addArtifactService(new MetadataTextChunksProvider());
         
         //patterns
         sm.addArtifactService(new AreaConnectionProvider());
