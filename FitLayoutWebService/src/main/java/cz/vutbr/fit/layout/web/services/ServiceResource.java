@@ -136,17 +136,24 @@ public class ServiceResource
             ServiceManager.setServiceParams(op, params.getParams());
             Artifact page = ((ArtifactService) op).process(null);
             
-            BoxModelBuilder builder = new BoxModelBuilder(((RDFArtifactRepository) sm.getArtifactRepository()).getIriFactory());
-            Model graph = builder.createGraph(page);
-            
-            StreamingOutput stream = new StreamingOutput() {
-                @Override
-                public void write(OutputStream os) throws IOException, WebApplicationException {
-                    Serialization.modelToStream(graph, os, mimeType);
-                }
-            };
-            
-            return Response.ok(stream).build();
+            if (page != null)
+            {
+                BoxModelBuilder builder = new BoxModelBuilder(((RDFArtifactRepository) sm.getArtifactRepository()).getIriFactory());
+                Model graph = builder.createGraph(page);
+                
+                StreamingOutput stream = new StreamingOutput() {
+                    @Override
+                    public void write(OutputStream os) throws IOException, WebApplicationException {
+                        Serialization.modelToStream(graph, os, mimeType);
+                    }
+                };
+                
+                return Response.ok(stream).build();
+            }
+            else
+            {
+                return Response.ok().build(); // no artifact produced
+            }
         }
         else
         {

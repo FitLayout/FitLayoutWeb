@@ -234,8 +234,15 @@ public class ArtifactResource
                         //invoke the service
                         ServiceManager.setServiceParams(op, params.getParams());
                         Artifact newArtifact = ((ArtifactService) op).process(sourceArtifact);
-                        repo.addArtifact(newArtifact);
-                        return Response.ok(new ResultValue(String.valueOf(newArtifact.getIri()))).build();
+                        if (newArtifact != null)
+                        {
+                            repo.addArtifact(newArtifact);
+                            return Response.ok(new ResultValue(String.valueOf(newArtifact.getIri()))).build();
+                        }
+                        else
+                        {
+                            return Response.ok(new ResultValue(null)).build(); // no new artifact created
+                        }
                     } catch (IllegalArgumentException e) {
                         e.printStackTrace();
                         return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
