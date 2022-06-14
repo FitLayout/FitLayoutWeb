@@ -13,6 +13,7 @@ import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.bcs.BCSProvider;
 import cz.vutbr.fit.layout.cssbox.CSSBoxTreeProvider;
 import cz.vutbr.fit.layout.map.chunks.MetadataTextChunksProvider;
+import cz.vutbr.fit.layout.map.op.TagByExamplesOperator;
 import cz.vutbr.fit.layout.patterns.AreaConnectionProvider;
 import cz.vutbr.fit.layout.patterns.TextChunkConnectionProvider;
 import cz.vutbr.fit.layout.provider.OperatorWrapperProvider;
@@ -87,6 +88,12 @@ public class FLConfig
             TagEntitiesOperator tagOp = new TagEntitiesOperator();
             tagOp.setTaggers(tc.getTaggers());
             addAreaTreeOperator(sm, tagOp);
+        }
+        
+        //metadata tagging
+        if (repo != null)
+        {
+            addAreaTreeOperator(sm, new TagByExamplesOperator());
         }
 
         /*FixedTaggerConfig tagConfig = new FixedTaggerConfig();
