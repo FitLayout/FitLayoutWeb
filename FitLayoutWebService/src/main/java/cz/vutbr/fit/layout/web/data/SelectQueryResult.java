@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.query.Binding;
@@ -79,6 +80,10 @@ public class SelectQueryResult
                 {
                     map.put(b.getName(), new IriBinding((IRI) b.getValue()));
                 }
+                else if (b.getValue() instanceof BNode)
+                {
+                    map.put(b.getName(), new BNodeBinding((BNode) b.getValue()));
+                }
                 else if (b.getValue() instanceof Literal)
                 {
                     map.put(b.getName(), new LiteralBinding(b.getValue().stringValue(), ((Literal) b.getValue()).getDatatype()));
@@ -103,6 +108,15 @@ public class SelectQueryResult
         {
             type = "uri";
             value = String.valueOf(iri);
+        }
+    }
+    
+    public static class BNodeBinding extends ResultBinding
+    {
+        public BNodeBinding(BNode bnode)
+        {
+            type = "bnode";
+            value = String.valueOf(bnode);
         }
     }
     
