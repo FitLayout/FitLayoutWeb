@@ -63,6 +63,7 @@
     <!-- http://fitlayout.github.io/ontology/repository.owl#accessedOn -->
 
     <owl:DatatypeProperty rdf:about="http://fitlayout.github.io/ontology/repository.owl#accessedOn">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://fitlayout.github.io/ontology/repository.owl#Repository"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
     </owl:DatatypeProperty>
@@ -83,6 +84,7 @@
     <!-- http://fitlayout.github.io/ontology/repository.owl#email -->
 
     <owl:DatatypeProperty rdf:about="http://fitlayout.github.io/ontology/repository.owl#email">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://fitlayout.github.io/ontology/repository.owl#Repository"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
@@ -103,6 +105,7 @@
     <!-- http://fitlayout.github.io/ontology/repository.owl#name -->
 
     <owl:DatatypeProperty rdf:about="http://fitlayout.github.io/ontology/repository.owl#name">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://fitlayout.github.io/ontology/repository.owl#Repository"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
@@ -120,9 +123,21 @@
     
 
 
+    <!-- http://fitlayout.github.io/ontology/repository.owl#readOnly -->
+
+    <owl:DatatypeProperty rdf:about="http://fitlayout.github.io/ontology/repository.owl#readOnly">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://fitlayout.github.io/ontology/repository.owl#Repository"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+        <rdfs:comment>Indicates whether the repository should be treated as read-only</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://fitlayout.github.io/ontology/repository.owl#uuid -->
 
     <owl:DatatypeProperty rdf:about="http://fitlayout.github.io/ontology/repository.owl#uuid">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://fitlayout.github.io/ontology/repository.owl#Repository"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
@@ -132,6 +147,7 @@
     <!-- http://fitlayout.github.io/ontology/repository.owl#version -->
 
     <owl:DatatypeProperty rdf:about="http://fitlayout.github.io/ontology/repository.owl#version">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://fitlayout.github.io/ontology/repository.owl#Repository"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
     </owl:DatatypeProperty>

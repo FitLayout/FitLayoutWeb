@@ -33,6 +33,8 @@ public class RepositoryInfo
     public Date accessedOn;
     @Schema(description="Expiration date", required = false)
     public Date expires;
+    @Schema(description="Read only flag", required = false)
+    public Boolean readOnly = false;
     
     
     public RepositoryInfo()
@@ -137,6 +139,16 @@ public class RepositoryInfo
         this.owner = owner;
     }
     
+    public Boolean getReadOnly()
+    {
+        return readOnly;
+    }
+
+    public void setReadOnly(Boolean readOnly)
+    {
+        this.readOnly = readOnly;
+    }
+
     public void updateWith(RepositoryInfo other)
     {
         setDescription(other.getDescription());

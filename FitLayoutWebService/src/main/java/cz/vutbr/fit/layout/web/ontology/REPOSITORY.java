@@ -69,6 +69,15 @@ public class REPOSITORY {
 	public static final IRI owner;
 
 	/**
+	 * {@code http://fitlayout.github.io/ontology/repository.owl#readOnly}.
+	 * <p>
+	 * Indicates whether the repository should be treated as read-only
+	 *
+	 * @see <a href="http://fitlayout.github.io/ontology/repository.owl#readOnly">readOnly</a>
+	 */
+	public static final IRI readOnly;
+
+	/**
 	 * {@code http://fitlayout.github.io/ontology/repository.owl#Repository}.
 	 * <p>
 	 * An artifact repository
@@ -100,6 +109,7 @@ public class REPOSITORY {
 		expires = factory.createIRI(REPOSITORY.NAMESPACE, "expires");
 		name = factory.createIRI(REPOSITORY.NAMESPACE, "name");
 		owner = factory.createIRI(REPOSITORY.NAMESPACE, "owner");
+		readOnly = factory.createIRI(REPOSITORY.NAMESPACE, "readOnly");
 		Repository = factory.createIRI(REPOSITORY.NAMESPACE, "Repository");
 		uuid = factory.createIRI(REPOSITORY.NAMESPACE, "uuid");
 		version = factory.createIRI(REPOSITORY.NAMESPACE, "version");

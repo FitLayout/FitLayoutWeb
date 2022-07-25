@@ -148,9 +148,17 @@ public class StorageProviderMulti implements StorageProvider
     @Override
     public RDFArtifactRepository getArtifactRepository(UserInfo user, String repoId)
     {
+        //find repository metadata if availabla
+        RepositoryInfo info = getRepositoryInfo(user, repoId);
+        //open the repository
         final RDFStorage storage = getStorage(user, repoId);
         if (storage != null)
-            return new RDFArtifactRepository(storage);
+        {
+            var ret = new RDFArtifactRepository(storage);
+            if (info.getReadOnly() != null && info.getReadOnly().booleanValue())
+                ret.setReadOnly(true);
+            return ret;
+        }
         else
             return null;
     }
@@ -375,6 +383,14 @@ public class StorageProviderMulti implements StorageProvider
             {
                 ret.setDescription(value.stringValue());
             }
+            else if (REPOSITORY.readOnly.equals(pred))
+            {
+                try {
+                    ret.setReadOnly(((Literal) value).booleanValue());
+                } catch (IllegalArgumentException e) {
+                    ret.setReadOnly(false);
+                }
+            }
         }
         return ret;
     }
@@ -395,6 +411,8 @@ public class StorageProviderMulti implements StorageProvider
             metadata.add(iri, REPOSITORY.owner, vf.createLiteral(info.getOwner()));
         if (info.getDescription() != null)
             metadata.add(iri, REPOSITORY.name, vf.createLiteral(info.getDescription()));
+        if (info.getReadOnly() != null)
+            metadata.add(iri, REPOSITORY.name, vf.createLiteral(info.getReadOnly()));
         addMetadata(metadata);
     }
     
