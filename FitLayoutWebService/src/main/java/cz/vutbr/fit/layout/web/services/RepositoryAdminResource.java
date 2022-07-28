@@ -158,7 +158,19 @@ public class RepositoryAdminResource
             try {
                 var info = storage.updateRepository(userService.getUser(), repositoryId, data);
                 if (info != null)
+                {
+                    /*if (info.getReadOnly() != null && info.getReadOnly() == true)
+                    {
+                        return Response.status(Status.FORBIDDEN)
+                                .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                                .build();
+                    }
+                    else
+                    {
+                        return Response.ok(info).build();
+                    }*/
                     return Response.ok(info).build();
+                }
                 else
                     return Response.status(Status.NOT_FOUND)
                             .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))

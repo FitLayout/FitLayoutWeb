@@ -146,7 +146,13 @@ public class StorageService
     {
         provider.deleteRepository(user, repoId);
     }
-        
+
+    public boolean isRepoReadOnly(UserInfo user, String repoId)
+    {
+        var info = getRepositoryInfo(user, repoId);
+        return (info.getReadOnly() != null && info.getReadOnly() == true);
+    }
+    
     public void closeStorage()
     {
         provider.close();

@@ -57,6 +57,7 @@ import cz.vutbr.fit.layout.model.Page;
 import cz.vutbr.fit.layout.ontology.BOX;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.Serialization;
+import cz.vutbr.fit.layout.rdf.StorageException;
 import cz.vutbr.fit.layout.rdf.model.RDFArtifact;
 import cz.vutbr.fit.layout.web.FLConfig;
 import cz.vutbr.fit.layout.web.StreamOutput;
@@ -246,7 +247,7 @@ public class ArtifactResource
                     } catch (IllegalArgumentException e) {
                         e.printStackTrace();
                         return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
-                    } catch (RepositoryException | ServiceException e) {
+                    } catch (RepositoryException | StorageException | ServiceException e) {
                         return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
                     }
                 }
@@ -267,7 +268,7 @@ public class ArtifactResource
                     .type(MediaType.APPLICATION_JSON)
                     .entity(new ResultErrorMessage(e.getMessage()))
                     .build();
-        } catch (RepositoryException | ServiceException e) {
+        } catch (RepositoryException | StorageException | ServiceException e) {
             return Response.serverError()
                     .type(MediaType.APPLICATION_JSON)
                     .entity(new ResultErrorMessage(e.getMessage()))
@@ -322,7 +323,7 @@ public class ArtifactResource
                     .type(MediaType.APPLICATION_JSON)
                     .entity(new ResultErrorMessage(e.getMessage()))
                     .build();
-        } catch (RepositoryException | ServiceException e) {
+        } catch (RepositoryException | StorageException | ServiceException e) {
             return Response.serverError()
                     .type(MediaType.APPLICATION_JSON)
                     .entity(new ResultErrorMessage(e.getMessage()))

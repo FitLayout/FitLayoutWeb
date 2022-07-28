@@ -412,7 +412,7 @@ public class StorageProviderMulti implements StorageProvider
         if (info.getDescription() != null)
             metadata.add(iri, REPOSITORY.name, vf.createLiteral(info.getDescription()));
         if (info.getReadOnly() != null)
-            metadata.add(iri, REPOSITORY.name, vf.createLiteral(info.getReadOnly()));
+            metadata.add(iri, REPOSITORY.readOnly, vf.createLiteral(info.getReadOnly() != null && info.getReadOnly() == true));
         addMetadata(metadata);
     }
     

@@ -159,6 +159,13 @@ public class RepositoryResource
     public Response updateQuery(String query)
     {
         try {
+            if (storage.isRepoReadOnly(userService.getUser(), repoId))
+            {
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                        .build();
+            }
+            
             final RDFStorage rdfst = storage.getStorage(userService.getUser(), repoId);
             if (rdfst != null)
             {
@@ -482,6 +489,13 @@ public class RepositoryResource
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response addQuadruple(QuadrupleData quad)
     {
+        if (storage.isRepoReadOnly(userService.getUser(), repoId))
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                    .build();
+        }
+        
         if (quad.isOk())
         {
             try {
@@ -539,6 +553,13 @@ public class RepositoryResource
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response addQuadruples(List<QuadrupleData> quads)
     {
+        if (storage.isRepoReadOnly(userService.getUser(), repoId))
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                    .build();
+        }
+        
         if (quads != null)
         {
             try {
@@ -607,6 +628,13 @@ public class RepositoryResource
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response deleteQuadruples(List<QuadrupleData> quads)
     {
+        if (storage.isRepoReadOnly(userService.getUser(), repoId))
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                    .build();
+        }
+        
         if (quads != null)
         {
             try {
@@ -716,6 +744,13 @@ public class RepositoryResource
         content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response clearNamespaces()
     {
+        if (storage.isRepoReadOnly(userService.getUser(), repoId))
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                    .build();
+        }
+        
         try {
             final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
             if (repo != null)
@@ -788,6 +823,13 @@ public class RepositoryResource
         content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response deleteNamespace(@PathParam("prefix") String prefix)
     {
+        if (storage.isRepoReadOnly(userService.getUser(), repoId))
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                    .build();
+        }
+        
         try {
             final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
             if (repo != null)
@@ -831,6 +873,13 @@ public class RepositoryResource
         content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response addNamespace(@PathParam("prefix") String prefix, String body)
     {
+        if (storage.isRepoReadOnly(userService.getUser(), repoId))
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                    .build();
+        }
+        
         if (prefix != null && body != null)
         {
             try {
@@ -960,6 +1009,13 @@ public class RepositoryResource
             @QueryParam("obj") String obj,
             @QueryParam("context") String context)
     {
+        if (storage.isRepoReadOnly(userService.getUser(), repoId))
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                    .build();
+        }
+        
         final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
         if (repo != null)
         {
@@ -1018,6 +1074,13 @@ public class RepositoryResource
             @QueryParam("baseURI") String baseURI,
             @HeaderParam("Content-Type") String mimeType)
     {
+        if (storage.isRepoReadOnly(userService.getUser(), repoId))
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                    .build();
+        }
+        
         final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
         if (repo != null)
         {
@@ -1056,6 +1119,13 @@ public class RepositoryResource
             @QueryParam("baseURI") String baseURI,
             @HeaderParam("Content-Type") String mimeType)
     {
+        if (storage.isRepoReadOnly(userService.getUser(), repoId))
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                    .build();
+        }
+        
         final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
         if (repo != null)
         {
@@ -1197,6 +1267,13 @@ public class RepositoryResource
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response initRepo()
     {
+        if (storage.isRepoReadOnly(userService.getUser(), repoId))
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                    .build();
+        }
+        
         final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
         if (repo != null)
         {
@@ -1225,6 +1302,13 @@ public class RepositoryResource
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response forceInitRepo()
     {
+        if (storage.isRepoReadOnly(userService.getUser(), repoId))
+        {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(new ResultErrorMessage(ResultErrorMessage.E_READ_ONLY))
+                    .build();
+        }
+        
         final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
         if (repo != null)
         {

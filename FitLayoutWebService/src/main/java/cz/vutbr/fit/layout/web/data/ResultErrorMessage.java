@@ -20,6 +20,7 @@ public class ResultErrorMessage extends Result
     public static final String E_NO_ARTIFACT = "No such artifact";
     public static final String E_NO_REPO = "No such repository";
     public static final String E_NOT_ACCEPTABLE = "Unsupported format";
+    public static final String E_READ_ONLY = "Read-only repository";
     
     String message;
 

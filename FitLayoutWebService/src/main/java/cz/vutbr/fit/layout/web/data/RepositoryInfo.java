@@ -153,6 +153,7 @@ public class RepositoryInfo
     {
         setDescription(other.getDescription());
         setEmail(other.getEmail());
+        setReadOnly(other.getReadOnly() != null && other.getReadOnly() == true);
     }
     
 }
