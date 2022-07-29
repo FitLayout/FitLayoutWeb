@@ -141,7 +141,7 @@
 				<artifactId>payara-micro-maven-plugin</artifactId>
 				<version>1.4.0</version>
 				<configuration>
-					<payaraVersion>5.2021.4</payaraVersion>
+					<payaraVersion>5.2022.2</payaraVersion>
 					<deployWar>true</deployWar>
 					<commandLineOptions>
 						<option>
