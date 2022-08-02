@@ -22,6 +22,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -90,9 +91,10 @@ public class ArtifactResource
      * Retrieves information about a given artifact without its contents.
      * @param mimeType
      * @param iri the artifact IRI or {@code null} for all artifacts
+     * @param pageIri the source page artifact iri
      * @return
      */
-    private Response serializeArtifactInfo(String iriValue, String mimeType)
+    private Response serializeArtifactInfo(String iriValue, String pageIri, String mimeType)
     {
         try {
             final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
@@ -101,7 +103,16 @@ public class ArtifactResource
                 Collection<IRI> list;
                 if (iriValue == null)
                 {
-                    list = repo.getArtifactIRIs();
+                    if (pageIri == null)
+                    {
+                        list = repo.getArtifactIRIs();
+                    }
+                    else
+                    {
+                        IRI iri = repo.getIriDecoder().decodeIri(pageIri);
+                        list = repo.getArtifactIRIs(iri);
+                        list.add(iri); //include the page itself
+                    }
                 }
                 else
                 {
@@ -161,9 +172,9 @@ public class ArtifactResource
             @APIResponse(responseCode = "404", description = "Repository with the given ID not found or could not be serialized",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(ref = "ResultErrorMessage")))
         })
-    public Response getArtifactsInfo(@HeaderParam("Accept") String accept)
+    public Response getArtifactsInfo(@QueryParam("page") String pageIri, @HeaderParam("Accept") String accept)
     {
-        return serializeArtifactInfo(null, accept);
+        return serializeArtifactInfo(null, pageIri, accept);
     }
     
     @GET
@@ -175,13 +186,23 @@ public class ArtifactResource
             content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = String.class)))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
-    public Response listArtifacts()
+    public Response listArtifacts(@QueryParam("page") String pageIri)
     {
         try {
             final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
             if (repo != null)
             {
-                Collection<IRI> list = repo.getArtifactIRIs();
+                Collection<IRI> list;
+                if (pageIri == null)
+                {
+                    list = repo.getArtifactIRIs();
+                }
+                else
+                {
+                    IRI iri = repo.getIriDecoder().decodeIri(pageIri);
+                    list = repo.getArtifactIRIs(iri);
+                    list.add(iri); //include the page itself
+                }
                 List<String> stringList = list.stream().map(Object::toString).collect(Collectors.toList());
                 return Response.ok(stringList).build();
             }
@@ -596,7 +617,7 @@ public class ArtifactResource
         })
     public Response getArtifactInfo(@HeaderParam("Accept") String accept, @PathParam("iri") String iriValue)
     {
-        return serializeArtifactInfo(iriValue, accept);
+        return serializeArtifactInfo(iriValue, null, accept);
     }
     
     //@GET
