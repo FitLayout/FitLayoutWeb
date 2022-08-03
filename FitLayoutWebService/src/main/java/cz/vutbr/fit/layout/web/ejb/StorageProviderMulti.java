@@ -125,7 +125,7 @@ public class StorageProviderMulti implements StorageProvider
     {
         if (isReady())
         {
-            return findUserRepository(user.getUserId(), repoId);
+            return findUserRepository(user.getUserId(), repoId, true);
         }
         else
             return null;
@@ -203,9 +203,13 @@ public class StorageProviderMulti implements StorageProvider
     public RepositoryInfo updateRepository(UserInfo user, String repoId, RepositoryInfo info)
             throws RepositoryException
     {
+        final boolean isadmin = (user.getRoles() != null && user.getRoles().contains("admin"));
+        if (!isadmin && user.isAnonymous())
+            return null; // only admin can modify guest repositories
+        
         if (isReady())
         {
-            RepositoryInfo current = findUserRepository(user.getUserId(), repoId);
+            RepositoryInfo current = findUserRepository(user.getUserId(), repoId, isadmin);
             if (current != null)
             {
                 current.updateWith(info);
@@ -267,11 +271,19 @@ public class StorageProviderMulti implements StorageProvider
         }
     }
     
-    private RepositoryInfo findUserRepository(String userId, String repoId)
+    /**
+     * Finds the user repositor and gets the info.
+     * 
+     * @param userId the repository user ID
+     * @param repoId the repository ID
+     * @param allowAnonymous try to look for anonymous user repository if the user's repository does not exist?
+     * @return the repository info or {@code null} if it does not exist
+     */
+    private RepositoryInfo findUserRepository(String userId, String repoId, boolean allowAnonymous)
     {
         var info = manager.getRepositoryInfo(userId + SEP + repoId);
         //if the repository is not defined for the user, try to find it for anonymous guest
-        if (info == null && !UserInfo.ANONYMOUS_USER.equals(userId))
+        if (info == null && allowAnonymous && !UserInfo.ANONYMOUS_USER.equals(userId))
             info = manager.getRepositoryInfo(UserInfo.ANONYMOUS_USER + SEP + repoId);
         
         if (info != null)

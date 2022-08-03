@@ -22,7 +22,7 @@ public class UserInfo
 {
     /**
      * The user ID used for an unathorized user. This is not used when the REST endpoind is
-     * disabled for anonymous sers.
+     * disabled for anonymous users.
      */
     public static String ANONYMOUS_USER = "guest";
 
@@ -107,6 +107,11 @@ public class UserInfo
     public void setExpires(Date expires)
     {
         this.expires = expires;
+    }
+
+    public Set<String> getRoles()
+    {
+        return roles;
     }
     
 }
