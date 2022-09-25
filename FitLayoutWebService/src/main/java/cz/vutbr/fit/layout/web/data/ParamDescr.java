@@ -26,18 +26,26 @@ public class ParamDescr
 {
     @Schema(description="Name of the parameter", required = true)
     public String name;
+    @Schema(description="Text description of the parameter", required = false)
+    public String description;
     @Schema(description="Type of the parameter {bolean, int, float, string}", required = true)
     public String type;
 
     public ParamDescr(Parameter param, String type)
     {
         name = param.getName();
+        description = param.getDescription();
         this.type = type; 
     }
 
     public String getName()
     {
         return name;
+    }
+
+    public String getDescription()
+    {
+        return description;
     }
 
     public String getType()
