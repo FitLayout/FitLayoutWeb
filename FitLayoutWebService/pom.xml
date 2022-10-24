@@ -103,17 +103,16 @@
 
 		<!-- Jakarta EE and microprofile -->
 		<dependency>
-			<groupId>jakarta.platform</groupId>
-			<artifactId>jakarta.jakartaee-api</artifactId>
-			<version>8.0.0</version>
+			<groupId>org.eclipse.microprofile</groupId>
+			<artifactId>microprofile</artifactId>
+			<version>4.1</version>
+			<type>pom</type>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.microprofile</groupId>
-			<artifactId>microprofile</artifactId>
-			<version>3.3</version>
-			<type>pom</type>
-			<scope>provided</scope>
+			<groupId>jakarta.mail</groupId>
+			<artifactId>jakarta.mail-api</artifactId>
+			<version>1.6.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -146,7 +145,7 @@
 				<artifactId>payara-micro-maven-plugin</artifactId>
 				<version>1.4.0</version>
 				<configuration>
-					<payaraVersion>5.2022.2</payaraVersion>
+					<payaraVersion>5.2022.3</payaraVersion>
 					<deployWar>true</deployWar>
 					<commandLineOptions>
 						<option>

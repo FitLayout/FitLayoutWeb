@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.mail.Authenticator;
 import javax.mail.Message;
@@ -31,7 +31,7 @@ import cz.vutbr.fit.layout.web.data.UserInfo;
  * 
  * @author burgetr
  */
-@Stateless
+@RequestScoped
 public class MailerService
 {
     @Inject
