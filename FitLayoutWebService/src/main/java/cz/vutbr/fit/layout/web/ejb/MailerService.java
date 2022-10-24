@@ -10,16 +10,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.mail.Authenticator;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.mail.Authenticator;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -31,7 +31,7 @@ import cz.vutbr.fit.layout.web.data.UserInfo;
  * 
  * @author burgetr
  */
-@Stateless
+@RequestScoped
 public class MailerService
 {
     @Inject

@@ -5,7 +5,7 @@
  */
 package cz.vutbr.fit.layout.web.data;
 
-import javax.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import cz.vutbr.fit.layout.web.data.SelectQueryResult.ResultHeader;
 
