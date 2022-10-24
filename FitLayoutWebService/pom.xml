@@ -2,7 +2,10 @@
 <!--
 	For creating an executable jar use:
 	mvn package
-	mvn payara-micro:bundle
+	mvn liberty:package -Dinclude=runnable
+	
+	For development
+	mvn liberty:dev
  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -24,6 +27,10 @@
 		<fitlayout.version>2.0.4-SNAPSHOT</fitlayout.version>
 		<slf4j.version>1.7.30</slf4j.version>
 		<logback.version>1.2.3</logback.version>
+      	<!-- Liberty configuration -->
+        <liberty.var.default.http.port>8080</liberty.var.default.http.port>
+        <liberty.var.default.https.port>9443</liberty.var.default.https.port>
+        <liberty.var.app.context.root>fitlayout-web</liberty.var.app.context.root>
 	</properties>
 
 	<dependencies>
@@ -141,30 +148,13 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>fish.payara.maven.plugins</groupId>
-				<artifactId>payara-micro-maven-plugin</artifactId>
-				<version>1.4.0</version>
-				<configuration>
-					<payaraVersion>5.2022.2</payaraVersion>
-					<deployWar>true</deployWar>
-					<commandLineOptions>
-						<option>
-							<key>--port</key>
-							<value>8088</value>
-						</option>
-						<option>
-							<key>--autoBindHttp</key>
-						</option>
-					</commandLineOptions>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>bundle</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+                <groupId>io.openliberty.tools</groupId>
+                <artifactId>liberty-maven-plugin</artifactId>
+                <version>3.7.1</version>
+                <configuration>
+                    <serverName>fitlayout</serverName>
+                </configuration>
+            </plugin>			
 		</plugins>
 	</build>
 
