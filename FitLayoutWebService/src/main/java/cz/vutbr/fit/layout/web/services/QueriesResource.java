@@ -151,7 +151,12 @@ public class QueriesResource
             {
                 if (query.getTitle() != null && query.getQueryString() != null)
                 {
-                    SavedQuery newQuery = new SavedQuery(query.getTitle(), query.getQueryString());
+                    SavedQuery newQuery = repo.getSavedQueryByTitle(query.getTitle()); // is there already a query with the same title
+                    if (newQuery != null)
+                        newQuery.setQueryString(query.getQueryString()); // yes - update query string
+                    else
+                        newQuery = new SavedQuery(query.getTitle(), query.getQueryString()); // no - create new query
+                    
                     repo.saveQuery(newQuery);
                     // return the new query
                     var ret = new SavedQueryDTO(newQuery);
