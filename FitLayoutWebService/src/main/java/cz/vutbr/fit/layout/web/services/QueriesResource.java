@@ -29,6 +29,7 @@ import org.eclipse.rdf4j.model.IRI;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.SavedQuery;
 import cz.vutbr.fit.layout.rdf.StorageException;
+import cz.vutbr.fit.layout.web.data.Result;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.data.SavedQueryDTO;
@@ -206,7 +207,7 @@ public class QueriesResource
                 if (queryMap.containsKey(iri))
                 {
                     repo.deleteSavedQuery(iri);
-                    return Response.ok().build();
+                    return Response.ok(new Result(Result.OK)).build();
                 }
                 else
                 {
