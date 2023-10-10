@@ -262,12 +262,13 @@ public class StorageProviderMulti implements StorageProvider
     private RepositoryInfo findRepository(String uuid)
     {
         try (RepositoryConnection con = getMetaRepository().getConnection()) {
-            RepositoryResult<Statement> statements = con.getStatements(null, REPOSITORY.uuid, vf.createLiteral(uuid));
-            Optional<IRI> repoIri = Models.subjectIRI(statements);
-            if (repoIri.isPresent())
-                return loadRepositoryInfo(con, repoIri.get());
-            else
-                return null;
+            try (RepositoryResult<Statement> statements = con.getStatements(null, REPOSITORY.uuid, vf.createLiteral(uuid))) {
+                Optional<IRI> repoIri = Models.subjectIRI(statements);
+                if (repoIri.isPresent())
+                    return loadRepositoryInfo(con, repoIri.get());
+                else
+                    return null;
+            }
         }
     }
     
@@ -358,49 +359,50 @@ public class StorageProviderMulti implements StorageProvider
     private RepositoryInfo loadRepositoryInfo(RepositoryConnection con, IRI repositoryIri)
     {
         RepositoryInfo ret = new RepositoryInfo();
-        final RepositoryResult<Statement> statements = con.getStatements(repositoryIri, null, null);
-        for (Statement st : statements)
-        {
-            final IRI pred = st.getPredicate();
-            final Value value = st.getObject();
-            
-            if (REPOSITORY.uuid.equals(pred))
+        try (final RepositoryResult<Statement> statements = con.getStatements(repositoryIri, null, null)) {
+            for (Statement st : statements)
             {
-                ret.setId(value.stringValue());
-            }
-            else if (REPOSITORY.accessedOn.equals(pred))
-            {
-                if (value instanceof Literal)
-                    ret.setAccessedOn(((Literal) value).calendarValue().toGregorianCalendar().getTime());
-            }
-            else if (REPOSITORY.createdOn.equals(pred))
-            {
-                if (value instanceof Literal)
-                    ret.setCreatedOn(((Literal) value).calendarValue().toGregorianCalendar().getTime());
-            }
-            else if (REPOSITORY.expires.equals(pred))
-            {
-                if (value instanceof Literal)
-                    ret.setExpires(((Literal) value).calendarValue().toGregorianCalendar().getTime());
-            }
-            else if (REPOSITORY.email.equals(pred))
-            {
-                ret.setEmail(value.stringValue());
-            }
-            else if (REPOSITORY.owner.equals(pred))
-            {
-                ret.setOwner(value.stringValue());
-            }
-            else if (REPOSITORY.name.equals(pred))
-            {
-                ret.setDescription(value.stringValue());
-            }
-            else if (REPOSITORY.readOnly.equals(pred))
-            {
-                try {
-                    ret.setReadOnly(((Literal) value).booleanValue());
-                } catch (IllegalArgumentException e) {
-                    ret.setReadOnly(false);
+                final IRI pred = st.getPredicate();
+                final Value value = st.getObject();
+                
+                if (REPOSITORY.uuid.equals(pred))
+                {
+                    ret.setId(value.stringValue());
+                }
+                else if (REPOSITORY.accessedOn.equals(pred))
+                {
+                    if (value instanceof Literal)
+                        ret.setAccessedOn(((Literal) value).calendarValue().toGregorianCalendar().getTime());
+                }
+                else if (REPOSITORY.createdOn.equals(pred))
+                {
+                    if (value instanceof Literal)
+                        ret.setCreatedOn(((Literal) value).calendarValue().toGregorianCalendar().getTime());
+                }
+                else if (REPOSITORY.expires.equals(pred))
+                {
+                    if (value instanceof Literal)
+                        ret.setExpires(((Literal) value).calendarValue().toGregorianCalendar().getTime());
+                }
+                else if (REPOSITORY.email.equals(pred))
+                {
+                    ret.setEmail(value.stringValue());
+                }
+                else if (REPOSITORY.owner.equals(pred))
+                {
+                    ret.setOwner(value.stringValue());
+                }
+                else if (REPOSITORY.name.equals(pred))
+                {
+                    ret.setDescription(value.stringValue());
+                }
+                else if (REPOSITORY.readOnly.equals(pred))
+                {
+                    try {
+                        ret.setReadOnly(((Literal) value).booleanValue());
+                    } catch (IllegalArgumentException e) {
+                        ret.setReadOnly(false);
+                    }
                 }
             }
         }

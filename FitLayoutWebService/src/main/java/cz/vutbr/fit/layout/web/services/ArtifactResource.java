@@ -646,17 +646,13 @@ public class ArtifactResource
         {
             for (Resource subject : subjects)
             {
-                RepositoryResult<Statement> result = con.getStatements(subject, null, null, true);
-                try {
+                try (RepositoryResult<Statement> result = con.getStatements(subject, null, null, true)) {
                     while (result.hasNext())
                     {
                         Statement st = result.next();
                         if (!st.getPredicate().equals(BOX.pngImage)) //filter out png images in the model to save space
                             model.add(st);
                     }
-                }
-                finally {
-                    result.close();
                 }
             }
         }
