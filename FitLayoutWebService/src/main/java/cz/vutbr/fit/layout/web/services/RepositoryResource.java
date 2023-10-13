@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.Response.Status;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -78,8 +79,9 @@ public class RepositoryResource
     private static final String DEFAULT_CONTEXT = "http://unknown.url/import";
     private static final String TEXT_BOOLEAN = "text/boolean";
 
-    /** Maximal value of a query limit. */
-    private static final long MAX_QUERY_LIMIT = 2048;
+    @Inject
+    @ConfigProperty(name = "fitlayout.rdf.maxQueryLimit", defaultValue = "2048")
+    long maxQueryLimit;
     
     @Inject
     private UserService userService;
@@ -116,7 +118,7 @@ public class RepositoryResource
     @APIResponse(responseCode = "500", description = "Query evaluation error",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response selectQuery(String query,
-            @DefaultValue("100") @QueryParam("limit") long limit,
+            @DefaultValue("2048") @QueryParam("limit") long limit,
             @DefaultValue("0") @QueryParam("offset") long offset,
             @DefaultValue("false") @QueryParam("distinct") boolean distinct)
     {
@@ -124,7 +126,7 @@ public class RepositoryResource
             final RDFStorage rdfst = storage.getStorage(userService.getUser(), repoId);
             if (rdfst != null)
             {
-                if (limit > MAX_QUERY_LIMIT) limit = MAX_QUERY_LIMIT;
+                if (limit <= 0 || limit > maxQueryLimit) limit = maxQueryLimit;
                 final List<BindingSet> bindings = rdfst.executeSparqlTupleQuery(query, distinct, limit, offset);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
                 return Response.ok(result).build();
@@ -216,7 +218,7 @@ public class RepositoryResource
     @APIResponse(responseCode = "500", description = "Query evaluation error",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
     public Response query(String query,
-            @DefaultValue("100") @QueryParam("limit") long limit,
+            @DefaultValue("2048") @QueryParam("limit") long limit,
             @DefaultValue("0") @QueryParam("offset") long offset,
             @DefaultValue("false") @QueryParam("distinct") boolean distinct,
             @HeaderParam("Accept") String accept)
@@ -225,7 +227,7 @@ public class RepositoryResource
             final RDFStorage rdfst = storage.getStorage(userService.getUser(), repoId);
             if (rdfst != null)
             {
-                if (limit > MAX_QUERY_LIMIT) limit = MAX_QUERY_LIMIT;
+                if (limit <= 0 || limit > maxQueryLimit) limit = maxQueryLimit;
                 final SparqlQueryResult result = rdfst.executeSparqlQuery(query, distinct, limit, offset);
                 switch (result.getType())
                 {
