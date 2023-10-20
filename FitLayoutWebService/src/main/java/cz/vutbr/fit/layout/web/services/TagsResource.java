@@ -27,6 +27,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
+import cz.vutbr.fit.layout.rdf.model.RDFTag;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.TagInfo;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
@@ -63,7 +64,7 @@ public class TagsResource
         final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
         if (repo != null)
         {
-            Collection<cz.vutbr.fit.layout.model.Tag> rdfTags = repo.getTags();
+            Collection<RDFTag> rdfTags = repo.getTags();
             List<TagInfo> tags = rdfTags.stream().map(t -> new TagInfo(t)).collect(Collectors.toList());
             return Response.ok(tags).build();
         }
