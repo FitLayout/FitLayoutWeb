@@ -45,6 +45,7 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.ListBindingSet;
@@ -292,15 +293,23 @@ public class RepositoryResource
         content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
-    public Response querySubject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
+    public Response querySubject(@PathParam("iri") String iriValue, @DefaultValue("2048") @QueryParam("limit") int limit)
     {
         try {
             final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
             if (repo != null)
             {
-                final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
-                final String query = "SELECT ?p ?v WHERE { <" + String.valueOf(iri) + "> ?p ?v } LIMIT " + limit;
-                final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
+                final Resource res;
+                if (iriValue.startsWith("_:"))
+                {
+                    final String bnodeId = iriValue.substring(2);
+                    res = Values.bnode(bnodeId);
+                }
+                else
+                {
+                    res = repo.getIriDecoder().decodeIri(iriValue);
+                }
+                final List<BindingSet> bindings = repo.getStorage().describeResource(res, true, limit);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
                 return Response.ok(result).build();
             }
@@ -328,15 +337,23 @@ public class RepositoryResource
         content = @Content(schema = @Schema(ref = "SelectQueryResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
-    public Response queryObject(@PathParam("iri") String iriValue, @DefaultValue("100") @QueryParam("limit") int limit)
+    public Response queryObject(@PathParam("iri") String iriValue, @DefaultValue("2048") @QueryParam("limit") int limit)
     {
         try {
             final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
             if (repo != null)
             {
-                final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
-                final String query = "SELECT ?v ?p WHERE { ?v ?p <" + String.valueOf(iri) + "> } LIMIT " + limit;
-                final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
+                final Resource res;
+                if (iriValue.startsWith("_:"))
+                {
+                    final String bnodeId = iriValue.substring(2);
+                    res = Values.bnode(bnodeId);
+                }
+                else
+                {
+                    res = repo.getIriDecoder().decodeIri(iriValue);
+                }
+                final List<BindingSet> bindings = repo.getStorage().describeResource(res, false, limit);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
                 return Response.ok(result).build();
             }
@@ -450,15 +467,23 @@ public class RepositoryResource
         content = @Content(schema = @Schema(ref = "SubjectDescriptionResult")))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
             content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
-    public Response describeSubject(@PathParam("iri") String iriValue)
+    public Response describeSubject(@PathParam("iri") String iriValue, @DefaultValue("2048") @QueryParam("limit") int limit)
     {
         try {
             final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
             if (repo != null)
             {
-                final IRI iri = repo.getIriDecoder().decodeIri(iriValue);
-                final String query = "SELECT ?p ?v WHERE { <" + String.valueOf(iri) + "> ?p ?v }";
-                final List<BindingSet> bindings = repo.getStorage().executeSafeTupleQuery(query);
+                final Resource res;
+                if (iriValue.startsWith("_:"))
+                {
+                    final String bnodeId = iriValue.substring(2);
+                    res = Values.bnode(bnodeId);
+                }
+                else
+                {
+                    res = repo.getIriDecoder().decodeIri(iriValue);
+                }
+                final List<BindingSet> bindings = repo.getStorage().describeResource(res, true, limit);
                 final SubjectDescriptionResult result = new SubjectDescriptionResult(bindings);
                 return Response.ok(result).build();
             }
