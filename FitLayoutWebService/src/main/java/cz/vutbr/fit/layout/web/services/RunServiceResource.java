@@ -7,6 +7,8 @@ package cz.vutbr.fit.layout.web.services;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.Scanner;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -19,16 +21,18 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.unbescape.uri.UriEscape;
 
 import cz.vutbr.fit.layout.model.Page;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.StorageException;
 import cz.vutbr.fit.layout.web.algorithm.JsonPageCreator;
-import cz.vutbr.fit.layout.web.data.Result;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
+import cz.vutbr.fit.layout.web.data.ResultValue;
 import cz.vutbr.fit.layout.web.ejb.StorageService;
 import cz.vutbr.fit.layout.web.ejb.UserService;
 
@@ -45,6 +49,10 @@ public class RunServiceResource
     private UserService userService;
     @Inject
     private StorageService storage;
+
+    @Inject
+    @ConfigProperty(name = "fitlayout.repository.url")
+    String repoUrl;
 
     @PathParam("repoId")
     @Parameter(description = "The ID of the artifact repository to use", required = true)
@@ -91,18 +99,17 @@ public class RunServiceResource
     {
         if (jsonRequired) 
         {
-            var result = new Result(Result.OK);
-            return Response.status(Status.BAD_REQUEST)
+            var result = new ResultValue(String.valueOf(page.getIri()));
+            return Response.ok()
                     .type(MediaType.APPLICATION_JSON)
                     .entity(result)
                     .build();
         }
         else
         {
-            String message = "ok, " + page.getWidth() + " x " + page.getHeight() + " : " + page.getTitle() + " " + page.getIri();
-            return Response.status(Status.BAD_REQUEST)
+            return Response.ok()
                     .type(MediaType.TEXT_HTML)
-                    .entity(createOkMessage(message))
+                    .entity(createOkMessage(page))
                     .build();
         }
     }
@@ -126,14 +133,41 @@ public class RunServiceResource
         }
     }
     
-    private String createOkMessage(String message)
+    private String createOkMessage(Page page)
     {
-        return "<div>" + message + "</div>";
+        String template = loadResource("/html/renderJsonOk.html");
+        var url = repoUrl.replaceAll("/r/$", "/b/") + repoId + "/show/" 
+                + UriEscape.escapeUriPathSegment(String.valueOf(page.getIri()));
+        var data = Map.of("iri", String.valueOf(page.getIri()),
+                "title", page.getTitle(),
+                "width", String.valueOf(page.getWidth()),
+                "height", String.valueOf(page.getHeight()),
+                "browserUrl", url);
+        return replaceWildcards(template, data);
     }
     
     private String createErrorMessage(String error)
     {
-        return "<div>" + error + "</div>";
+        String template = loadResource("/html/renderJsonError.html");
+        var data = Map.of("message", error,
+                "repositoryUrl", repoUrl + repoId);
+        return replaceWildcards(template, data);
+    }
+    
+    private String replaceWildcards(String template, Map<String, String> data)
+    {
+        String ret = template;
+        for (String key : data.keySet())
+            ret = ret.replaceAll("\\{\\{" + key + "\\}\\}", data.get(key));
+        return ret;
+    }
+    
+    private static String loadResource(String filePath)
+    {
+        try (Scanner scanner = new Scanner(RunServiceResource.class.getResourceAsStream(filePath), "UTF-8")) {
+            scanner.useDelimiter("\\A");
+            return scanner.next();
+        }
     }
     
 }
