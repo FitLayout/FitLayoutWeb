@@ -70,7 +70,7 @@ public class RepositoryServiceResource
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(operationId = "getServiceList", summary = "Gets a list of available artifact services.")
+    @Operation(operationId = "repositoryGetServiceList", summary = "Gets a list of available artifact services for the repository.")
     @APIResponse(responseCode = "200", description = "List of service descriptions",
             content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = ArtifactServiceDescr.class)))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
@@ -102,7 +102,7 @@ public class RepositoryServiceResource
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NTRIPLES, Serialization.NQUADS})
     @PermitAll
-    @Operation(operationId = "invoke", summary = "Invokes a service and returns the resulting artifact")
+    @Operation(operationId = "repositoryInvoke", summary = "Invokes a service and returns the resulting artifact")
     @APIResponse(responseCode = "200", description = "The complete artifact data")    
     @APIResponse(responseCode = "404", description = "Repository or service with the given ID not found",
                 content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    

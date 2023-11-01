@@ -55,7 +55,7 @@ public class RepositoryOperatorResource
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
-    @Operation(operationId = "listOperators", summary = "Gets a list of available area tree operator services for the repository.")
+    @Operation(operationId = "repositoryListOperators", summary = "Gets a list of available area tree operator services for the repository.")
     @APIResponse(responseCode = "200", description = "List of service descriptions",
             content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = ParametrizedServiceDescr.class)))    
     @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
