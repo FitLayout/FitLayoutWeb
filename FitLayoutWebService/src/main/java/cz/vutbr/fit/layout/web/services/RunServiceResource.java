@@ -7,8 +7,11 @@ package cz.vutbr.fit.layout.web.services;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -27,9 +30,15 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.unbescape.uri.UriEscape;
 
+import cz.vutbr.fit.layout.api.ServiceManager;
+import cz.vutbr.fit.layout.model.AreaTree;
+import cz.vutbr.fit.layout.model.ChunkSet;
 import cz.vutbr.fit.layout.model.Page;
+import cz.vutbr.fit.layout.model.TextChunk;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.StorageException;
+import cz.vutbr.fit.layout.segm.BasicSegmProvider;
+import cz.vutbr.fit.layout.web.FLConfig;
 import cz.vutbr.fit.layout.web.algorithm.JsonPageCreator;
 import cz.vutbr.fit.layout.web.data.ResultErrorMessage;
 import cz.vutbr.fit.layout.web.data.ResultValue;
@@ -94,6 +103,52 @@ public class RunServiceResource
         }
 
     }
+    
+    @POST
+    @Path("/tagJson")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
+    @Operation(operationId = "tagJsonPage", summary = "Analyzes the provided page descriptions and finds tagged text chunks in the page.")
+    public Response tagJsonPage(InputStream istream, @HeaderParam("Accept") String accept)
+    {
+        final boolean jsonRequired = MediaType.APPLICATION_JSON.equals(accept);
+        try {
+            
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+            if (repo != null)
+            {
+                JsonPageCreator builder = new JsonPageCreator();
+                Page page = builder.renderInputStream(istream, "UTF-8");
+                
+                var segm = new BasicSegmProvider(true);
+                AreaTree atree = segm.createAreaTree(page);
+                
+                ServiceManager sm = FLConfig.createServiceManager(repo);
+                AreaTree atree2 = (AreaTree) sm.applyArtifactService("FitLayout.Tag.Entities", Map.of(), atree);
+                
+                ChunkSet chunkSet = (ChunkSet) sm.applyArtifactService("FitLayout.TextChunks", Map.of(), atree2);
+                Set<TextChunk> chunks = chunkSet.getTextChunks();
+                
+                return createChunksResponse(chunks, jsonRequired);
+            }
+            else
+            {
+                return createErrorResponse(Status.NOT_FOUND, ResultErrorMessage.E_NO_REPO, jsonRequired);
+            }
+            
+        } catch (StorageException e) {
+            return Response.serverError()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new ResultErrorMessage(e.getMessage()))
+                    .build();
+        } catch (IOException | RuntimeException e) {
+            //e.printStackTrace();
+            return createErrorResponse(Status.BAD_REQUEST, e.getMessage(), jsonRequired);
+        }
+
+    }
+    
+    // ==============================================================================================
     
     private Response createOkResponse(Page page, boolean jsonRequired)
     {
@@ -167,6 +222,58 @@ public class RunServiceResource
         try (Scanner scanner = new Scanner(RunServiceResource.class.getResourceAsStream(filePath), "UTF-8")) {
             scanner.useDelimiter("\\A");
             return scanner.next();
+        }
+    }
+    
+    // ==============================================================================================
+    
+    private Response createChunksResponse(Set<TextChunk> chunks, boolean jsonRequired)
+    {
+        if (jsonRequired) 
+        {
+            List<ChunkResponse> crs = new ArrayList<>(chunks.size());
+            for (TextChunk chunk : chunks)
+            {
+                var r = chunk.getBounds();
+                for (var tag : chunk.getTags().keySet())
+                {
+                    ChunkResponse cr = new ChunkResponse(r.getX1(), r.getY1(), r.getWidth(), r.getHeight(),
+                            chunk.getText(), tag.getName());
+                    crs.add(cr);
+                }
+            }
+            var result = new ResultValue(crs);
+            return Response.ok()
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(result)
+                    .build();
+        }
+        else
+        {
+            return Response.ok()
+                    .type(MediaType.TEXT_HTML)
+                    .entity("nic")
+                    .build();
+        }
+    }
+    
+    public static class ChunkResponse
+    {
+        public int x;
+        public int y;
+        public int width;
+        public int height;
+        public String text;
+        public String tag;
+        
+        public ChunkResponse(int x, int y, int width, int height, String text, String tag)
+        {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.text = text;
+            this.tag = tag;
         }
     }
     
