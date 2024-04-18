@@ -85,11 +85,11 @@ public class RunServiceResource
                 Page page = builder.renderInputStream(istream, "UTF-8");
                 //page.setCreatorParams("...");
                 repo.addArtifact(page);
-                return createOkResponse(page, jsonRequired);
+                return createRenderOkResponse(page, jsonRequired);
             }
             else
             {
-                return createErrorResponse(Status.NOT_FOUND, ResultErrorMessage.E_NO_REPO, jsonRequired);
+                return createRenderErrorResponse(Status.NOT_FOUND, ResultErrorMessage.E_NO_REPO, jsonRequired);
             }
             
         } catch (StorageException e) {
@@ -99,7 +99,7 @@ public class RunServiceResource
                     .build();
         } catch (IOException | RuntimeException e) {
             //e.printStackTrace();
-            return createErrorResponse(Status.BAD_REQUEST, e.getMessage(), jsonRequired);
+            return createRenderErrorResponse(Status.BAD_REQUEST, e.getMessage(), jsonRequired);
         }
 
     }
@@ -133,7 +133,7 @@ public class RunServiceResource
             }
             else
             {
-                return createErrorResponse(Status.NOT_FOUND, ResultErrorMessage.E_NO_REPO, jsonRequired);
+                return createRenderErrorResponse(Status.NOT_FOUND, ResultErrorMessage.E_NO_REPO, jsonRequired);
             }
             
         } catch (StorageException e) {
@@ -143,14 +143,14 @@ public class RunServiceResource
                     .build();
         } catch (IOException | RuntimeException e) {
             //e.printStackTrace();
-            return createErrorResponse(Status.BAD_REQUEST, e.getMessage(), jsonRequired);
+            return createRenderErrorResponse(Status.BAD_REQUEST, e.getMessage(), jsonRequired);
         }
 
     }
     
     // ==============================================================================================
     
-    private Response createOkResponse(Page page, boolean jsonRequired)
+    private Response createRenderOkResponse(Page page, boolean jsonRequired)
     {
         if (jsonRequired) 
         {
@@ -169,7 +169,7 @@ public class RunServiceResource
         }
     }
     
-    private Response createErrorResponse(Status status, String message, boolean jsonRequired)
+    private Response createRenderErrorResponse(Status status, String message, boolean jsonRequired)
     {
         if (jsonRequired) 
         {
