@@ -34,6 +34,7 @@ import cz.vutbr.fit.layout.api.ServiceManager;
 import cz.vutbr.fit.layout.model.AreaTree;
 import cz.vutbr.fit.layout.model.ChunkSet;
 import cz.vutbr.fit.layout.model.Page;
+import cz.vutbr.fit.layout.model.Rectangular;
 import cz.vutbr.fit.layout.model.TextChunk;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.StorageException;
@@ -129,7 +130,7 @@ public class RunServiceResource
                 ChunkSet chunkSet = (ChunkSet) sm.applyArtifactService("FitLayout.TextChunks", Map.of(), atree2);
                 Set<TextChunk> chunks = chunkSet.getTextChunks();
                 
-                return createChunksResponse(chunks, jsonRequired);
+                return createChunksResponse(page, chunks, jsonRequired);
             }
             else
             {
@@ -227,7 +228,7 @@ public class RunServiceResource
     
     // ==============================================================================================
     
-    private Response createChunksResponse(Set<TextChunk> chunks, boolean jsonRequired)
+    private Response createChunksResponse(Page page, Set<TextChunk> chunks, boolean jsonRequired)
     {
         if (jsonRequired) 
         {
@@ -252,10 +253,61 @@ public class RunServiceResource
         {
             return Response.ok()
                     .type(MediaType.TEXT_HTML)
-                    .entity("nic")
+                    .entity(createTaggedChunksResponse(page, chunks))
                     .build();
         }
     }
+    
+    private String createTaggedChunksResponse(Page page, Set<TextChunk> chunks)
+    {
+        String chunkStr = "";
+        for (TextChunk chunk : chunks)
+        {
+            if (!chunk.getTags().isEmpty())
+                chunkStr += chunkToHTMLString(chunk) + "\n";
+        }
+        String template = loadResource("/html/tagJsonOk.html");
+        var data = Map.of("iri", String.valueOf(page.getIri()),
+                "title", page.getTitle(),
+                "width", String.valueOf(page.getWidth()),
+                "height", String.valueOf(page.getHeight()),
+                "chunks", chunkStr);
+        return replaceWildcards(template, data);
+    }
+    
+    private String chunkToHTMLString(TextChunk chunk)
+    {
+        String tagNames = "";
+        for (var tag : chunk.getTags().keySet())
+            tagNames += tag.getName() + " ";
+        tagNames = tagNames.trim();
+                
+        Rectangular r = chunk.getBounds();
+        String chunkStyle = "left:" + r.getX1() + "px; top:" + r.getY1() + "px; width:" + r.getWidth() + "px; height:" + r.getHeight() + "px;";
+        //chunkStyle += "outline: 1px solid #000000;";
+        chunkStyle += "background-color: " + stringColor(tagNames) + ";";
+        chunkStyle += "position: absolute;";
+        return "<div style=\"" + chunkStyle + "\" class=\"" + tagNames + "\" title=\"" + tagNames + "\"></div>";
+    }
+    
+    protected String stringColor(String cname)                                 
+    {                                                                            
+            if (cname == null || cname.equals(""))       
+                    return "white";                                                 
+            String s = new String(cname);                                        
+            while (s.length() < 6) s = s + s;                                    
+            int r = (int) s.charAt(0) * (int) s.charAt(1);                      
+            int g = (int) s.charAt(2) * (int) s.charAt(3);                      
+            int b = (int) s.charAt(4) * (int) s.charAt(5);
+            r = 100 + (r % 150);
+            g = 100 + (g % 150);
+            b = 100 + (b % 150);
+            String ret = "rgba(" + r + "," + g + "," + b + ", 0.4)";
+            return ret;                                                          
+    }
+
+    
+    // ==============================================================================================
     
     public static class ChunkResponse
     {
