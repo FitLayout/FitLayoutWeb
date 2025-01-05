@@ -36,6 +36,7 @@ import cz.vutbr.fit.layout.segm.op.SuperAreaOperator;
 import cz.vutbr.fit.layout.segm.op.TagByAttributeOperator;
 import cz.vutbr.fit.layout.text.chunks.LeafAreaChunksProvider;
 import cz.vutbr.fit.layout.text.chunks.TextChunksProvider;
+import cz.vutbr.fit.layout.text.chunks.WordsChunksProvider;
 import cz.vutbr.fit.layout.text.op.TagEntitiesOperator;
 import cz.vutbr.fit.layout.vips.VipsProvider;
 
@@ -84,8 +85,9 @@ public class FLConfig
         addAreaTreeOperator(sm, new HomogeneousLeafOperator());
         addAreaTreeOperator(sm, new TagByAttributeOperator());
         
-        //simple text chunks extractor
+        //simple text chunks extractors
         sm.addArtifactService(new LeafAreaChunksProvider());
+        sm.addArtifactService(new WordsChunksProvider());
         
         //text module when the tags are configured in the repo metadata
         if (repo != null)
