@@ -55,16 +55,23 @@ public class StorageService
     @PostConstruct
     public void init()
     {
-        singleMode = (!"multi".equals(configStorage));
-        if (singleMode)
+        switch (configStorage)
         {
-            log.info("Initializing single mode repository");
-            provider = new StorageProviderSingle(configStorage, configServer, configRepository, configPath);
-        }
-        else
-        {
-            log.info("Initializing multi mode repository in {}", configPath);
-            provider = new StorageProviderMulti(configPath);
+            case "multi":
+                log.info("Initializing multi mode repository in {}", configPath);
+                provider = new StorageProviderMulti(configPath);
+                singleMode = false;
+                break;
+            case "localdir":
+                log.info("Initializing local mode repository in {}", configPath);
+                provider = new StorageProviderLocal(configPath);
+                singleMode = false;
+                break;
+            default:
+                log.info("Initializing single mode repository");
+                provider = new StorageProviderSingle(configStorage, configServer, configRepository, configPath);
+                singleMode = true;
+                break;
         }
     }
     
