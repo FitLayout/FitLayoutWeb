@@ -6,12 +6,9 @@
 package cz.vutbr.fit.layout.web.data;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.rdf4j.model.BNode;
@@ -19,6 +16,8 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.query.Binding;
 import org.eclipse.rdf4j.query.BindingSet;
+
+import cz.vutbr.fit.layout.rdf.SparqlQueryResult;
 
 /**
  * A result value representing the result of a SPARQL query.
@@ -31,16 +30,14 @@ public class SelectQueryResult
     public ResultHeader head;
     public ResultBody results;
     
-    public SelectQueryResult(List<BindingSet> bindings)
+    public SelectQueryResult(SparqlQueryResult.TupleResult tupleResult)
     {
-        Set<String> names = new HashSet<>();
         results = new ResultBody();
-        for (BindingSet bset : bindings)
+        for (BindingSet bset : tupleResult.getTuples())
         {
-            names.addAll(bset.getBindingNames());
             results.add(bset);
         }
-        head = new ResultHeader(names);
+        head = new ResultHeader(tupleResult.getVariableNames());
     }
     
     //================================================================================
@@ -55,9 +52,9 @@ public class SelectQueryResult
             this.vars = null;
         }
         
-        public ResultHeader(Collection<String> vars)
+        public ResultHeader(List<String> vars)
         {
-            this.vars = new ArrayList<>(vars);
+            this.vars = vars;
         }
     }
     

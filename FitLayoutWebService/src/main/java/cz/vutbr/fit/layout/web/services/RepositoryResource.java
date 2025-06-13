@@ -128,7 +128,7 @@ public class RepositoryResource
             if (rdfst != null)
             {
                 if (limit <= 0 || limit > maxQueryLimit) limit = maxQueryLimit;
-                final List<BindingSet> bindings = rdfst.executeSparqlTupleQuery(query, distinct, limit, offset);
+                final SparqlQueryResult.TupleResult bindings = rdfst.executeSparqlTupleQuery(query, distinct, limit, offset);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
                 return Response.ok(result).build();
             }
@@ -309,7 +309,7 @@ public class RepositoryResource
                 {
                     res = repo.getIriDecoder().decodeIri(iriValue);
                 }
-                final List<BindingSet> bindings = repo.getStorage().describeResource(res, true, limit);
+                final SparqlQueryResult.TupleResult bindings = repo.getStorage().describeResource(res, true, limit);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
                 return Response.ok(result).build();
             }
@@ -353,7 +353,7 @@ public class RepositoryResource
                 {
                     res = repo.getIriDecoder().decodeIri(iriValue);
                 }
-                final List<BindingSet> bindings = repo.getStorage().describeResource(res, false, limit);
+                final SparqlQueryResult.TupleResult bindings = repo.getStorage().describeResource(res, false, limit);
                 final SelectQueryResult result = new SelectQueryResult(bindings);
                 return Response.ok(result).build();
             }
@@ -483,8 +483,8 @@ public class RepositoryResource
                 {
                     res = repo.getIriDecoder().decodeIri(iriValue);
                 }
-                final List<BindingSet> bindings = repo.getStorage().describeResource(res, true, limit);
-                final SubjectDescriptionResult result = new SubjectDescriptionResult(bindings);
+                final SparqlQueryResult.TupleResult bindings = repo.getStorage().describeResource(res, true, limit);
+                final SubjectDescriptionResult result = new SubjectDescriptionResult(bindings.getTuples());
                 return Response.ok(result).build();
             }
             else
@@ -736,13 +736,15 @@ public class RepositoryResource
                 final List<Namespace> nss = repo.getStorage().getNamespaces();
                 //transform to a binding set
                 final var vf = repo.getStorage().getValueFactory();
+                final var vars = List.of("prefix", "namespace");
                 List<BindingSet> bindings = nss.stream()
-                        .map((ns) -> new ListBindingSet(List.of("prefix", "namespace"),
+                        .map((ns) -> new ListBindingSet(vars,
                                                         vf.createLiteral(ns.getPrefix()), 
                                                         vf.createLiteral(ns.getName())))
                         .collect(Collectors.toList());
                 //send result
-                final SelectQueryResult result = new SelectQueryResult(bindings);
+                final SparqlQueryResult.TupleResult tupleResult = new SparqlQueryResult.TupleResult(vars, bindings);
+                final SelectQueryResult result = new SelectQueryResult(tupleResult);
                 return Response.ok(result).build();
             }
             else
@@ -1229,12 +1231,14 @@ public class RepositoryResource
                 final List<Resource> nss = repo.getStorage().getContexts();
                 //transform to a binding set
                 final var vf = repo.getStorage().getValueFactory();
+                final var vars = List.of("contextID");
                 List<BindingSet> bindings = nss.stream()
-                        .map((ctx) -> new ListBindingSet(List.of("contextID"),
+                        .map((ctx) -> new ListBindingSet(vars,
                                                         vf.createIRI(String.valueOf(ctx))))
                         .collect(Collectors.toList());
                 //send result
-                final SelectQueryResult result = new SelectQueryResult(bindings);
+                final SparqlQueryResult.TupleResult tupleResult = new SparqlQueryResult.TupleResult(vars, bindings);
+                final SelectQueryResult result = new SelectQueryResult(tupleResult);
                 return Response.ok(result).build();
             }
             else
