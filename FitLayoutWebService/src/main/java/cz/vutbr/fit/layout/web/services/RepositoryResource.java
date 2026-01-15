@@ -49,9 +49,11 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.ListBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.helpers.NTriplesUtil;
 
 import cz.vutbr.fit.layout.api.IRIDecoder;
+import cz.vutbr.fit.layout.api.ServiceException;
 import cz.vutbr.fit.layout.ontology.BOX;
 import cz.vutbr.fit.layout.rdf.RDFArtifactRepository;
 import cz.vutbr.fit.layout.rdf.RDFStorage;
@@ -1208,6 +1210,38 @@ public class RepositoryResource
                 repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri);
             else
                 repo.getStorage().importStream(istream, Serialization.getFormatForMimeType(mimeType), contextIri, baseURI);
+        }
+    }
+
+    @DELETE
+    @Path("/clear")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(operationId = "clear", summary = "Clears the repository - deletes all artifacts and metadata")
+    @APIResponse(responseCode = "200", description = "Repository cleared",
+            content = @Content(schema = @Schema(ref = "ResultValue")))    
+    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
+            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
+    public Response removeAll()
+    {
+        try {
+            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
+            if (repo != null)
+            {
+                repo.clear();
+                return Response.ok(new ResultValue(null)).build();
+            }
+            else
+            {
+                return Response.status(Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
+                        .build();
+            }
+        } catch (IllegalArgumentException e) {
+            return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
+        } catch (RepositoryException | ServiceException e) {
+            return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
         }
     }
     

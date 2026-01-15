@@ -562,38 +562,6 @@ public class ArtifactResource
         }
     }
     
-    @DELETE
-    @Path("/clear")
-    @Produces(MediaType.APPLICATION_JSON)
-    @PermitAll
-    @Operation(operationId = "clear", summary = "Clears the repository - deletes all artifacts and metadata")
-    @APIResponse(responseCode = "200", description = "Repository cleared",
-            content = @Content(schema = @Schema(ref = "ResultValue")))    
-    @APIResponse(responseCode = "404", description = "Repository with the given ID not found",
-            content = @Content(schema = @Schema(ref = "ResultErrorMessage")))    
-    public Response removeAll()
-    {
-        try {
-            final RDFArtifactRepository repo = storage.getArtifactRepository(userService.getUser(), repoId);
-            if (repo != null)
-            {
-                repo.clear();
-                return Response.ok(new ResultValue(null)).build();
-            }
-            else
-            {
-                return Response.status(Status.NOT_FOUND)
-                        .type(MediaType.APPLICATION_JSON)
-                        .entity(new ResultErrorMessage(ResultErrorMessage.E_NO_REPO))
-                        .build();
-            }
-        } catch (IllegalArgumentException e) {
-            return Response.status(Status.BAD_REQUEST).entity(new ResultErrorMessage(e.getMessage())).build();
-        } catch (RepositoryException | ServiceException e) {
-            return Response.serverError().entity(new ResultErrorMessage(e.getMessage())).build();
-        }
-    }
-    
     @GET
     @Path("/info/{iri}")
     @Produces({Serialization.JSONLD, Serialization.TURTLE, Serialization.RDFXML, Serialization.NTRIPLES, Serialization.NQUADS})

@@ -22,7 +22,7 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 @DeclareRoles({ "user", "admin" })
 @OpenAPIDefinition(
     info = @Info(title = "FitLayout REST API",
-                    version = "1.0.0",
+                    version = "1.1.0",
                     description = "FitLayout API for artifact creation, storage and manipulation",
                     contact = @Contact(url = "https://github.com/FitLayout/FitLayout/wiki",
                     email = "burgetr@fit.vut.cz")),
