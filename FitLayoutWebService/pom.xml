@@ -142,26 +142,29 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>fish.payara.maven.plugins</groupId>
-				<artifactId>payara-micro-maven-plugin</artifactId>
-				<version>1.4.0</version>
+				<groupId>io.openliberty.tools</groupId>
+				<artifactId>liberty-maven-plugin</artifactId>
+				<version>3.12.0</version>
 				<configuration>
-					<payaraVersion>5.2022.3</payaraVersion>
-					<deployWar>true</deployWar>
-					<commandLineOptions>
-						<option>
-							<key>--port</key>
-							<value>8088</value>
-						</option>
-						<option>
-							<key>--autoBindHttp</key>
-						</option>
-					</commandLineOptions>
+					<assemblyArtifact>
+						<groupId>io.openliberty</groupId>
+						<artifactId>openliberty-runtime</artifactId>
+						<version>26.0.0.3</version>
+						<type>zip</type>
+					</assemblyArtifact>
+					<serverName>fitlayout</serverName>
+					<packageType>jar</packageType>
+					<include>runnable</include>
 				</configuration>
 				<executions>
 					<execution>
+						<id>liberty-package</id>
+						<phase>package</phase>
 						<goals>
-							<goal>bundle</goal>
+							<goal>create</goal>
+							<goal>install-feature</goal>
+							<goal>deploy</goal>
+							<goal>package</goal>
 						</goals>
 					</execution>
 				</executions>
