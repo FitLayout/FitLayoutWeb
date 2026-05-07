@@ -7,9 +7,12 @@
         <feature>servlet-6.0</feature>
     </featureManager>
 
+    <variable name="http.port" defaultValue="8088"/>
+    <variable name="https.port" defaultValue="9443"/>
+
     <httpEndpoint id="defaultHttpEndpoint"
-                  httpPort="8088"
-                  httpsPort="9443"/>
+                  httpPort="${http.port}"
+                  httpsPort="${https.port}"/>
                   
     <applicationManager autoExpand="true"/>
 
